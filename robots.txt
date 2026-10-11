@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+# Replace the placeholder domain in sitemap.xml after publishing.
+Sitemap: https://example.com/sitemap.xml
