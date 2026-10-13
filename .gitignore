@@ -1,0 +1,26 @@
+# ═══ Server logs ═══
+.local-server.log
+.local-server.pid
+*.log
+
+# ═══ Backups ═══
+*.bak-*
+*.bak
+backups/
+stable-releases/
+
+# ═══ Temp files ═══
+*.tmp
+index.html.bak-*
+index.html.*.bak
+
+# ═══ Node ═══
+node_modules/
+
+# ═══ Python ═══
+__pycache__/
+*.pyc
+
+# ═══ OS ═══
+.DS_Store
+Thumbs.db
