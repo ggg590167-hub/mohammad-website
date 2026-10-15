@@ -151,7 +151,18 @@ const sys3 = Sys.analyzeSystem({
 validation = V.validateSystem(sys3);
 console.log(`   صالح؟ ${validation.valid} | أخطاء: ${validation.counts.errors} | تحذيرات: ${validation.counts.warnings}`);
 validation.issues.forEach(i => console.log(`   [${i.severity}] ${i.code}: ${i.message}`));
-check('النظام صالح', validation.valid === true);
+// التصميم الجديد: لا فحص MPPT ثابت — الإنفرتر يختاره المهندس
+const mpptOverload = validation.issues.some(i => i.code === 'MPPT_OVERLOAD');
+check('لا يوجد MPPT_OVERLOAD (تصميم جديد)', mpptOverload === false,
+      'لا يُصدر خطأ MPPT بدون مواصفات إنفرتر');
+
+const mpptWarn = validation.issues.some(i => i.code === 'MPPT_CHECK_REQUIRED');
+check('يُصدر تحذير MPPT_CHECK_REQUIRED', mpptWarn === true,
+      'يجب تنبيه المهندس للتحقق من MPPT');
+
+const hasRequirements = sys3.inverterRequirements != null;
+check('inverterRequirements موجود', hasRequirements === true,
+      'مخرجات النظام يجب أن تحتوي على متطلبات الإنفرتر');
 
 console.log('\n═══════════════════════════════════════════════');
 console.log(`  النتيجة: ${passed} نجح / ${failed} فشل`);

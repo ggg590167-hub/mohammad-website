@@ -291,10 +291,11 @@ function validateSystem(systemResult) {
     const bat = systemResult.battery;
     const batWh = bat.actualWh || (bat.actualKWh * 1000) || 0;
     if (batWh > 0) {
+      const autDays = bat.autonomyDays || 1;
       issues.push(...validateBattery(
         batWh,
         systemResult.load.dailyWh,
-        1,   // autDays — نفترض يوم واحد افتراضيًا
+        autDays,
         bat.dod || 0.8,
         'البطاريات'
       ));
@@ -308,6 +309,23 @@ function validateSystem(systemResult) {
       systemResult.pv.requiredW,
       'الألواح',
       systemResult.pv.panelW
+    ));
+  }
+
+  // ═══ 8.6 متطلبات الإنفرتر ═══
+  // لم يعد هناك فحص بحد ثابت — المهندس يختار الإنفرتر من مواصفاته.
+  // نُصدر تحذيراً معلوماتياً عند تعدد السلاسل لتذكير بالتحقق.
+  if (systemResult.pv && systemResult.pv.nStrings >= 2 && systemResult.iPv != null) {
+    issues.push(result(
+      true,
+      'MPPT_CHECK_REQUIRED',
+      'إجمالي تيار الألواح مرتفع؛ تحقّق من توزيع السلاسل وحدود تيار مداخل MPPT في الإنفرتر المختار',
+      SEVERITY.WARNING,
+      {
+        totalCurrent: systemResult.iPv,
+        nStrings: systemResult.pv.nStrings,
+        perString: systemResult.iPerString
+      }
     ));
   }
 

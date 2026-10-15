@@ -23,14 +23,21 @@ function buildDiagram(s) {
   }
 
   const panelsPerString    = Math.ceil(totalPanels / nStrings);
-  const pvStringV          = panelsPerString * VMP_PER_PANEL;
-  const iPv                = pvStringV > 0 ? pvW / pvStringV : 0;
-  const iPerString         = nStrings > 0 ? iPv / nStrings : 0;
+  function voltageInString(i) {
+    return panelsInString(i) * VMP_PER_PANEL;
+  }
+  const stringVoltages = Array.from(
+    { length: nStrings }, (_, i) => voltageInString(i)
+  );
+  const pvStringV          = panelsPerString * VMP_PER_PANEL;      /* مرجعي */
+  const iPerString         = pvPanelW > 0 ? pvPanelW / VMP_PER_PANEL : 0;
+  const iPv                = iPerString * nStrings;
 
   const invW       = s.inverter.stdW || 0;
   const invN       = s.inverter.nInverters || 1;
   const invRatedW  = s.inverter.ratedW || 0;
-  const mpptPerInv = 4;
+  // عدد مداخل MPPT ديناميكي — يتبع عدد السلاسل الفعلي، لا ثابتاً
+  const mpptPerInv = Math.max(1, nStrings);
   const totalMPPT  = invN * mpptPerInv;
   const activeMPPT = Math.min(nStrings, totalMPPT);
 
@@ -109,7 +116,7 @@ function buildDiagram(s) {
   /* ═══ القسم 1: الألواح ═══ */
   svg += '<rect x="40" y="' + pvSecY + '" width="' + (W-80) + '" height="' + pvSecH + '" rx="16" fill="#0d1b2a" stroke="#4a7ba8" stroke-width="3"/>';
   svg += '<text x="' + (W/2) + '" y="' + (pvSecY + 38) + '" text-anchor="middle" fill="#93c5fd" font-size="22" font-weight="bold">☀️ مصفوفة الألواح الشمسية — Series Strings</text>';
-  svg += '<text x="' + (W/2) + '" y="' + (pvSecY + 68) + '" text-anchor="middle" fill="#dbeafe" font-size="16" font-weight="bold">الإجمالي: ' + totalPanels + ' لوح × ' + pvPanelW + 'W = ' + n(pvW) + ' Wp  |  جهد السلسلة: ' + f1(pvStringV) + 'V  |  تيار المصفوفة: ' + f1(iPv) + ' A</text>';
+  svg += '<text x="' + (W/2) + '" y="' + (pvSecY + 68) + '" text-anchor="middle" fill="#dbeafe" font-size="16" font-weight="bold">الإجمالي: ' + totalPanels + ' لوح × ' + pvPanelW + 'W = ' + n(pvW) + ' Wp  |  جهود السلاسل (V): ' + stringVoltages.map(f1).join(' / ') + ' V  |  تيار المصفوفة: ' + f1(iPv) + ' A</text>';
 
   let arrangementText;
   if (extraPanels === 0) {
@@ -166,11 +173,11 @@ function buildDiagram(s) {
       svg += '<circle cx="' + (sx + stringBoxW - 20) + '" cy="' + (sy + stringBoxH/2) + '" r="8" fill="#dc2626" stroke="#fca5a5" stroke-width="1.5"/>';
       svg += '<text x="' + (sx + stringBoxW - 20) + '" y="' + (sy + stringBoxH/2 - 12) + '" text-anchor="middle" fill="#fca5a5" font-size="15" font-weight="bold">+</text>';
 
-      svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + stringBoxH - 14) + '" text-anchor="middle" fill="#dbeafe" font-size="14" font-weight="bold">' + panelsForThisString + '×' + pvPanelW + 'W  ·  ' + n(stringPowerW) + 'W  ·  ' + f1(pvStringV) + 'V</text>';
+      svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + stringBoxH - 14) + '" text-anchor="middle" fill="#dbeafe" font-size="14" font-weight="bold">' + panelsForThisString + '×' + pvPanelW + 'W  ·  ' + n(stringPowerW) + 'W  ·  ' + f1(voltageInString(i)) + 'V</text>';
     } else {
       svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + 46) + '" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="bold">S' + (i+1) + '</text>';
       svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + 82) + '" text-anchor="middle" fill="#dbeafe" font-size="18" font-weight="bold">' + panelsForThisString + ' ألواح × ' + pvPanelW + 'W</text>';
-      svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + 112) + '" text-anchor="middle" fill="#dbeafe" font-size="17" font-weight="bold">' + f1(pvStringV) + ' V  ·  ' + f1(iPerString) + ' A</text>';
+      svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + 112) + '" text-anchor="middle" fill="#dbeafe" font-size="17" font-weight="bold">' + f1(voltageInString(i)) + ' V  ·  ' + f1(iPerString) + ' A</text>';
       svg += '<text x="' + (sx + stringBoxW/2) + '" y="' + (sy + 143) + '" text-anchor="middle" fill="#a3e635" font-size="17" font-weight="bold">' + n(stringPowerW) + ' W</text>';
 
       svg += '<circle cx="' + (sx + 20) + '" cy="' + (sy + stringBoxH/2) + '" r="8" fill="#1e40af" stroke="#93c5fd" stroke-width="1.5"/>';
@@ -192,7 +199,7 @@ function buildDiagram(s) {
 
   const pvSecBottom = pvSecY + pvSecH;
   svg += '<line x1="' + (W/2) + '" y1="' + (pvSecBottom + 5) + '" x2="' + (W/2) + '" y2="' + (pvSecBottom + 45) + '" stroke="#c49b40" stroke-width="4" marker-end="url(#aGold)"/>';
-  svg += '<text x="' + (W/2 + 20) + '" y="' + (pvSecBottom + 30) + '" fill="#f0d99a" font-size="14" font-weight="bold">كابل DC: ' + pvCable + 'mm² × ' + pvPaths + ' مسار/سلسلة · ' + f1(iPerString) + 'A/سلسلة</text>';
+  svg += '<text x="' + (W/2 + 20) + '" y="' + (pvSecBottom + 30) + '" fill="#f0d99a" font-size="14" font-weight="bold">كابل DC جامع: ' + pvCable + 'mm² × ' + pvPaths + ' مسار · ' + f1(iPv) + 'A (إجمالي) · ' + f1(iPerString) + 'A/سلسلة</text>';
 
   /* القاطع DC + SPD */
   const pvBrkY = pvSecBottom + 50, pvBrkH = 80;
@@ -233,7 +240,7 @@ function buildDiagram(s) {
     svg += '<text x="' + (mx + mpptBoxW/2) + '" y="' + (my + 32) + '" text-anchor="middle" fill="' + titleClr + '" font-size="17" font-weight="bold">MPPT #' + (m+1) + '</text>';
 
     if (isActive) {
-      svg += '<text x="' + (mx + mpptBoxW/2) + '" y="' + (my + 66) + '" text-anchor="middle" fill="' + bodyClr + '" font-size="14" font-weight="bold">Vin: ' + f1(pvStringV) + ' V  ·  Iin: ' + f1(iPerString) + ' A</text>';
+      svg += '<text x="' + (mx + mpptBoxW/2) + '" y="' + (my + 66) + '" text-anchor="middle" fill="' + bodyClr + '" font-size="14" font-weight="bold">Vin: ' + f1(voltageInString(m)) + ' V  ·  Iin: ' + f1(iPerString) + ' A</text>';
       svg += '<text x="' + (mx + mpptBoxW/2) + '" y="' + (my + 100) + '" text-anchor="middle" fill="#a3e635" font-size="15" font-weight="bold">المصدر: السلسلة S' + (m+1) + '</text>';
       svg += '<text x="' + (mx + mpptBoxW/2) + '" y="' + (my + 128) + '" text-anchor="middle" fill="#dbeafe" font-size="13" font-weight="bold">' + n(panelsInString(m) * pvPanelW) + ' W</text>';
       svg += '<text x="' + (mx + mpptBoxW/2) + '" y="' + (my + 152) + '" text-anchor="middle" fill="#a3e635" font-size="12" font-weight="bold">● نشط</text>';

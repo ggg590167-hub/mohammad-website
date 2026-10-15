@@ -59,7 +59,8 @@ const SYSTEM_CONFIG = Object.freeze({
   DEFAULT_PANEL_W: 550,
   DEFAULT_PANEL_VMP: 42,
   DEFAULT_PANEL_VOC: 49.7,
-  MPPT_MAX_VOC: 500           // للألواح الافتراضية
+  BETA_VOC: -0.003,           // 1/°C — معامل افتراضي (راجع ورقة اللوح)
+  MIN_TEMP_C: 0               // °C — أدنى حرارة تصميمية (اليمن — افتراضي)
 });
 
 /* ═══ 1. تحليل الأحمال ═══
@@ -308,13 +309,28 @@ function sizePVArray(dailyWh, hsp, invEff, userPanelW) {
   const nPanels = P.panelsCount(pvPowerW, panelW);
   const pvActual = nPanels * panelW;
 
+  // ═══ توزيع السلاسل ═══
+  const MAX_PER_STRING = 8;
+  const nStrings = Math.max(1, Math.ceil(nPanels / MAX_PER_STRING));
+  const panelsPerString = Math.ceil(nPanels / nStrings);
+
+  // ═══ Voc عند STC وعند أدنى حرارة ═══
+  const panelVoc = SYSTEM_CONFIG.DEFAULT_PANEL_VOC;
+  const vocSTC = panelVoc * panelsPerString;
+  const vocCold = P.vocAtTemperature(vocSTC, SYSTEM_CONFIG.MIN_TEMP_C);
+
   return {
     requiredW: pvPowerW,
     actualW: pvActual,
     panelW: panelW,
     nPanels: nPanels,
     pr: pr,
-    pvEnergyWh: pvEnergyWh
+    pvEnergyWh: pvEnergyWh,
+    // جديد
+    nStrings: nStrings,
+    panelsPerString: panelsPerString,
+    vocSTC: vocSTC,
+    vocCold: vocCold
   };
 }
 
@@ -467,14 +483,17 @@ function analyzeSystem(input) {
   const MAX_PER_STRING = 8;
   const nStringsCalc = Math.max(1, Math.ceil(pv.nPanels / MAX_PER_STRING));
   const panelsPerStringCalc = Math.ceil(pv.nPanels / nStringsCalc);
-  const pvStringV = panelsPerStringCalc * 42;
-  const iPv = pv.actualW / pvStringV;
+  const VMP = SYSTEM_CONFIG.DEFAULT_PANEL_VMP;
+  const pvStringV = panelsPerStringCalc * VMP;
+  const iPerString = pv.panelW / VMP;
+  const iPv = iPerString * pv.nStrings;
   const pvCable = C.selectCableAndBreaker({
     current: iPv,
     legLength: pvCableLength,
     voltage: pvStringV,
     dropPercent: 2,
     minArea: 4
+    // jMax غير مُمرَّر — القيد الحراري مُلغى (IEC 60364-5-52)
   });
 
   // ═══ 5. البطاريات ═══
@@ -489,7 +508,8 @@ function analyzeSystem(input) {
     legLength: batteryCableLength,
     voltage: battery.voltage,
     dropPercent: 1,
-    minArea: 10
+    minArea: 10,
+    jMax: 3   // تحفّظ مقصود لكابل البطارية
   });
 
   // ═══ 8. تيار AC ═══
@@ -502,7 +522,8 @@ function analyzeSystem(input) {
     legLength: acCableLength,
     voltage: acV,
     dropPercent: 2,
-    minArea: 2.5
+    minArea: 2.5,
+    jMax: 5   // معياري لكابل AC
   });
 
   // ═══ النتيجة الكاملة ═══
@@ -518,12 +539,23 @@ function analyzeSystem(input) {
     pv,
     battery,
     iPv,
+    iPerString,
     pvStringV,
     pvCable,
     iBat,
     batteryCable,
     iAc,
     acCable,
+    inverterRequirements: {
+      recommendedPowerW: inverter.stdW,
+      phases: invPhase,
+      minMPPTInputs: pv.nStrings,
+      maxVocCold: pv.vocCold,
+      maxStringVoltage: pvStringV,
+      stringCurrents: Array.from({ length: pv.nStrings }, () => iPerString),
+      totalCurrent: iPv,
+      note: 'متطلب تصميمي إرشادي — راجع ورقة بيانات الإنفرتر المختار'
+    },
     config: SYSTEM_CONFIG
   };
 }

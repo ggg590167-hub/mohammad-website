@@ -47,7 +47,7 @@ function selectCableAndBreaker(input) {
   const V = input.voltage;
   const dV = input.dropPercent == null ? 1 : input.dropPercent;
   const minArea = input.minArea || 10;
-  const jMax = input.jMax || 3;
+  const jMax = input.jMax;   // اختياري — يُلغى القيد الحراري إن لم يُمرَّر
   const safety = input.safetyFactor || 1.1;
 
   // ═══ التحقق من المدخلات ═══
@@ -72,7 +72,7 @@ function selectCableAndBreaker(input) {
   const aVD = P.areaFromVoltageDrop(L, I, V, dV);
 
   // ═══ الخطوة 4: المقطع المطلوب من الحرارة ═══
-  const aThermal = P.areaFromThermal(I, jMax);
+  const aThermal = (jMax && jMax > 0) ? P.areaFromThermal(I, jMax) : 0;
 
   // ═══ الخطوة 5: المقطع المطلوب (الأكبر) ═══
   const requiredArea = Math.max(

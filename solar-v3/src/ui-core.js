@@ -181,6 +181,24 @@ function buildReport(systemResult, validationResult, meta) {
   c4.push(row('عدد الإنفرترات', s.inverter.nInverters + ' × ' + fmtInt(s.inverter.ratedW) + ' W'));
   cards.push(card('⚡ 4. الإنفرتر', c4));
 
+  /* ═══ بطاقة 4.b: متطلبات الإنفرتر ═══ */
+  if (s.inverterRequirements) {
+    const r = s.inverterRequirements;
+    const c4b = [];
+    c4b.push(row('قدرة الإنفرتر القياسية', fmtInt(r.recommendedPowerW) + ' W'));
+    c4b.push(row('الأطوار', r.phases === 3 ? '3φ (400V)' : '1φ (230V)'));
+    c4b.push(row('عدد مداخل MPPT', '≥ ' + r.minMPPTInputs));
+    var minTC = (s.config && s.config.MIN_TEMP_C != null) ? s.config.MIN_TEMP_C : 0;
+    var betaVoc = (s.config && s.config.BETA_VOC != null) ? s.config.BETA_VOC : -0.003;
+    c4b.push(row('أقصى Voc بارد (' + minTC + '°C)', fmt(r.maxVocCold, 0) + ' V'));
+    c4b.push('<div class="sc-note">Voc(' + minTC + '°C) = Voc_STC × [1 + ' + betaVoc + ' × (' + minTC + ' - 25)] · معامل افتراضي — راجع ورقة بيانات اللوح</div>');
+    c4b.push(row('جهد السلسلة (Vmp)', fmt(r.maxStringVoltage, 0) + ' V'));
+    c4b.push(row('تيار السلسلة', fmt(r.stringCurrents[0], 1) + ' A'));
+    c4b.push(row('إجمالي التيار', fmt(r.totalCurrent, 1) + ' A'));
+    if (r.note) c4b.push('<div class="sc-note">' + r.note + '</div>');
+    cards.push(card('⚡ 4.b متطلبات الإنفرتر', c4b));
+  }
+
   /* ═══ بطاقة 5: التيارات ═══ */
   const c5 = [];
   c5.push(row('تيار البطارية (DC)', fmt(s.iBat, 1) + ' A'));
@@ -200,13 +218,14 @@ function buildReport(systemResult, validationResult, meta) {
   if (s.pvCable) {
     const c6b = [];
     const pv = s.pvCable;
-    var nStrCalc = Math.max(1, Math.ceil(s.pv.nPanels / 8));
-    var iPerStringCalc = s.iPv / nStrCalc;
-    var iLabel = nStrCalc > 1
-      ? 'تيار المصفوفة (لكل سلسلة: ' + fmt(iPerStringCalc, 1) + ' A)'
-      : 'تيار المصفوفة';
-    c6b.push(row(iLabel, fmt(s.iPv, 1) + ' A'));
-    c6b.push(row('جهد السلسلة', fmt(s.pvStringV || 0, 0) + ' V'));
+    var iPerStringCalc = (s.iPerString != null)
+      ? s.iPerString
+      : (s.pv.nStrings > 0 ? s.iPv / s.pv.nStrings : 0);
+    c6b.push(row('تيار المصفوفة (إجمالي)', fmt(s.iPv, 1) + ' A'));
+    if (s.pv.nStrings > 1) {
+      c6b.push(row('تيار السلسلة الواحدة', fmt(iPerStringCalc, 1) + ' A'));
+    }
+    c6b.push(row('جهد السلسلة (مرجعي)', fmt(s.pvStringV || 0, 0) + ' V'));
     c6b.push(row('مقطع الكابل', pv.cableSize + ' mm² × ' + pv.paths + ' مسار'));
     c6b.push(row('القاطع', pv.breaker + ' A'));
     c6b.push(row('تحمل الكابل الكلي', fmtInt(pv.cableAmpacity) + ' A'));
@@ -226,7 +245,7 @@ function buildReport(systemResult, validationResult, meta) {
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ النظام صالح</strong>' +
+    c8.push('<div class="sc-ok"><strong>✅ اجتاز الفحوصات الحسابية الأولية</strong>' +
       '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings + '</div>');
   } else {
     c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
