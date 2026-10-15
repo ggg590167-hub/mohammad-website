@@ -17,6 +17,18 @@
 @media(max-width:700px){.container{width:min(100% - 28px,560px)}.nav{min-height:68px}.menu-btn{display:block}.navlinks{display:none;position:absolute;top:68px;right:14px;left:14px;background:#111315;border:1px solid #ffffff20;border-radius:16px;padding:14px;box-shadow:var(--shadow);flex-direction:column;align-items:stretch}.navlinks.open{display:flex}.navlinks a{padding:8px}.nav-cta{display:none}.hero{padding:54px 0 38px}.hero-grid,.split,.contact-grid{grid-template-columns:1fr}.hero-grid{gap:20px}.hero p{font-size:15px}.visual{min-height:300px}.orbit{width:290px}.orbit-label{font-size:10px;padding:7px 9px}.orbit-label b{font-size:12px}.core span{font-size:52px}.section{padding:54px 0}.grid{grid-template-columns:1fr}.article-grid{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr 1fr}.calculator{padding:17px}.steps{gap:9px}.step{padding:14px}.section h2{font-size:29px}.brand{font-size:13px}.brandmark{width:39px;height:39px}.hero-note{gap:10px}.floating{bottom:12px;left:12px;width:50px;height:50px}}
 @media(max-width:380px){.formgrid{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.hero-actions .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+/* ═══ شريط الأخبار — Ticker ═══ */
+.ticker-zone{position:relative;z-index:1;margin-bottom:32px}
+.ticker-zone-btm{position:relative;z-index:1;margin-top:32px}
+.ticker-wrap{width:100%;height:68px;background:linear-gradient(90deg,#141617,#1a1c1f,#141617);border:1px solid #d7ad5540;border-radius:10px;overflow:hidden;position:relative;box-shadow:inset 0 0 20px #d7ad5510}
+.ticker-wrap::before,.ticker-wrap::after{content:"";position:absolute;top:0;bottom:0;width:40px;z-index:2;pointer-events:none}
+.ticker-wrap::before{right:0;background:linear-gradient(to left,#141617,transparent)}
+.ticker-wrap::after{left:0;background:linear-gradient(to right,#141617,transparent)}
+.ticker-inner{position:absolute;top:0;left:0;height:68px;display:flex;align-items:center;white-space:nowrap;will-change:transform;animation:ticker-scroll 60s linear infinite}
+.ticker-inner>span{display:inline-block;padding:0 40px;color:#ffffff;font-size:19px;font-weight:700;font-family:'Segoe UI','Cairo','Tajawal','Helvetica Neue',Tahoma,Arial,sans-serif;letter-spacing:0.3px}
+.ticker-inner>.sep{color:#f3d78d;padding:0;font-size:16px}
+@keyframes ticker-scroll{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
+@media(max-width:700px){.ticker-inner>span{font-size:15px;padding:0 24px}.ticker-zone{margin-bottom:20px}.ticker-zone-btm{margin-top:20px}}
 </style>
 
 <style>
@@ -323,8 +335,8 @@ body.calc-modal-open{overflow:hidden;}
           </defs>
           <circle cx="22" cy="22" r="18" fill="none" stroke="url(#boltGrad)" stroke-width="1.2" opacity="0.5"/>
           <circle cx="22" cy="22" r="14" fill="none" stroke="url(#boltGrad)" stroke-width="0.6" opacity="0.3"/>
-          <path d="M 24 8 L 13 23 L 20 23 L 18 36 L 31 19 L 23 19 Z" 
-                fill="url(#boltGrad)" 
+          <path d="M 24 8 L 13 23 L 20 23 L 18 36 L 31 19 L 23 19 Z"
+                fill="url(#boltGrad)"
                 filter="url(#glow)"/>
         </svg>
       </span>
@@ -339,6 +351,41 @@ body.calc-modal-open{overflow:hidden;}
 </header>
 <main>
 <section class="hero" id="home">
+  <div class="container ticker-zone">
+    <div class="ticker-wrap">
+      <div class="ticker-inner">
+        <span>⚡ محلات بن درهم التجارية</span><span class="sep">◆</span>
+        <span>الشركة الرائدة في التخزين والطاقة الشمسية الذكية ومنظوماتها</span><span class="sep">◆</span>
+        <span>📍 إب — مفرق جبلة</span><span class="sep">◆</span>
+        <span>📞 777781515 · 771888873 · 04535326</span><span class="sep">◆</span>
+        <span>🔋 مركز عالم الليثيوم: 775558338</span><span class="sep">◆</span>
+        <span>🏢 صنعاء: 775558338</span><span class="sep">◆</span>
+        <span>✨ زورونا تجدوا ما يسرّكم</span><span class="sep">◆</span>
+        <span>⚡ محلات بن درهم التجارية</span><span class="sep">◆</span>
+        <span>الشركة الرائدة في التخزين والطاقة الشمسية الذكية ومنظوماتها</span><span class="sep">◆</span>
+        <span>📍 إب — مفرق جبلة</span><span class="sep">◆</span>
+        <span>📞 777781515 · 771888873 · 04535326</span><span class="sep">◆</span>
+        <span>🔋 مركز عالم الليثيوم: 775558338</span><span class="sep">◆</span>
+        <span>🏢 صنعاء: 775558338</span><span class="sep">◆</span>
+        <span>✨ زورونا تجدوا ما يسرّكم</span><span class="sep">◆</span>
+
+        <span>⚡ محلات بن درهم التجارية</span><span class="sep">◆</span>
+        <span>الشركة الرائدة في التخزين والطاقة الشمسية الذكية ومنظوماتها</span><span class="sep">◆</span>
+        <span>📍 إب — مفرق جبلة</span><span class="sep">◆</span>
+        <span>📞 777781515 · 771888873 · 04535326</span><span class="sep">◆</span>
+        <span>🔋 مركز عالم الليثيوم: 775558338</span><span class="sep">◆</span>
+        <span>🏢 صنعاء: 775558338</span><span class="sep">◆</span>
+        <span>✨ زورونا تجدوا ما يسرّكم</span><span class="sep">◆</span>
+        <span>⚡ محلات بن درهم التجارية</span><span class="sep">◆</span>
+        <span>الشركة الرائدة في التخزين والطاقة الشمسية الذكية ومنظوماتها</span><span class="sep">◆</span>
+        <span>📍 إب — مفرق جبلة</span><span class="sep">◆</span>
+        <span>📞 777781515 · 771888873 · 04535326</span><span class="sep">◆</span>
+        <span>🔋 مركز عالم الليثيوم: 775558338</span><span class="sep">◆</span>
+        <span>🏢 صنعاء: 775558338</span><span class="sep">◆</span>
+        <span>✨ زورونا تجدوا ما يسرّكم</span><span class="sep">◆</span>
+      </div>
+    </div>
+  </div>
   <div class="container hero-grid">
     <div>
       <div class="eyebrow"><span class="dot"></span> م/ محمد الأسد · Al-Asad Engineering</div>
@@ -359,6 +406,11 @@ body.calc-modal-open{overflow:hidden;}
         <div class="orbit-label l3">أنظمة أمنية<b>CCTV / IP</b></div>
         <div class="orbit-label l4">حلول كهربائية<b>Electrical</b></div>
       </div>
+    </div>
+  </div>
+  <div class="container ticker-zone-btm">
+    <div class="ticker-wrap">
+      <div class="ticker-inner" style="animation-duration:60s"><span>م/ محمد الأسد</span><span class="sep">◆</span><span>مهندس كهرباء وطاقة شمسية</span><span class="sep">◆</span><span>تمديدات كهربائية متكاملة</span><span class="sep">◆</span><span>أنظمة الطاقة الشمسية والتخزين</span><span class="sep">◆</span><span>ستالايت / دش وضبط الإشارة</span><span class="sep">◆</span><span>كاميرات مراقبة وحماية</span><span class="sep">◆</span><span>حلول هندسية متكاملة بمعايير عالمية</span><span class="sep">◆</span><span>م/ محمد الأسد</span><span class="sep">◆</span><span>مهندس كهرباء وطاقة شمسية</span><span class="sep">◆</span><span>تمديدات كهربائية متكاملة</span><span class="sep">◆</span><span>أنظمة الطاقة الشمسية والتخزين</span><span class="sep">◆</span><span>ستالايت / دش وضبط الإشارة</span><span class="sep">◆</span><span>كاميرات مراقبة وحماية</span><span class="sep">◆</span><span>حلول هندسية متكاملة بمعايير عالمية</span><span class="sep">◆</span><span>م/ محمد الأسد</span><span class="sep">◆</span><span>مهندس كهرباء وطاقة شمسية</span><span class="sep">◆</span><span>تمديدات كهربائية متكاملة</span><span class="sep">◆</span><span>أنظمة الطاقة الشمسية والتخزين</span><span class="sep">◆</span><span>ستالايت / دش وضبط الإشارة</span><span class="sep">◆</span><span>كاميرات مراقبة وحماية</span><span class="sep">◆</span><span>حلول هندسية متكاملة بمعايير عالمية</span><span class="sep">◆</span><span>م/ محمد الأسد</span><span class="sep">◆</span><span>مهندس كهرباء وطاقة شمسية</span><span class="sep">◆</span><span>تمديدات كهربائية متكاملة</span><span class="sep">◆</span><span>أنظمة الطاقة الشمسية والتخزين</span><span class="sep">◆</span><span>ستالايت / دش وضبط الإشارة</span><span class="sep">◆</span><span>كاميرات مراقبة وحماية</span><span class="sep">◆</span><span>حلول هندسية متكاملة بمعايير عالمية</span><span class="sep">◆</span></div>
     </div>
   </div>
 </section>
@@ -645,7 +697,7 @@ body.calc-modal-open{overflow:hidden;}
 </main>
 <footer class="footer">
   <div class="container footer-inner">
-    
+
     <!-- العمود الأول: الهوية -->
     <div class="footer-brand">
       <div class="footer-logo">
@@ -681,7 +733,7 @@ body.calc-modal-open{overflow:hidden;}
     </div>
 
   </div>
-  
+
   <!-- الخط السفلي: الحقوق -->
   <div class="container footer-bottom">
     <span>© <span id="year"></span> م/ محمد الأسد — Al-Asad Engineering</span>
