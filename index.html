@@ -254,7 +254,6 @@ body.calc-modal-open{overflow:hidden;}
 .know-app{font-size:12px;color:#a3e635;margin:10px 0 8px;padding:7px 11px;background:#a3e63510;border-radius:6px;border-right:2px solid #a3e635;font-family:monospace;direction:ltr;text-align:center}
 .know-src{font-size:10px;color:#6b7280;margin:8px 0 0;font-style:italic}
 
-
 /* ═══ جدول مقارنة البطاريات ═══ */
 .bat-compare{font-size:13px;min-width:820px}
 .bat-compare th{background:#d7ad5515;color:#f0d99a;font-weight:700;font-size:12px;text-align:center;padding:12px 10px}
@@ -477,7 +476,7 @@ body.calc-modal-open{overflow:hidden;}
           <h3>تقدير قدرة المصفوفة</h3>
           <div class="equation">P_pv ≈ E_daily ÷ (HSP × PR)</div>
           <p>القدرة المطلوبة من الألواح بناءً على الاستهلاك وساعات الشمس.</p>
-          <div class="know-app">📐 8.28 ÷ (5.5 × 0.744) = 2,023 W</div>
+          <div class="know-app">📐 8.28 ÷ (0.92 × 0.744 × 5.5) = 2,199 W</div>
           <p class="know-src">NREL · PVWatts</p>
         </article>
         <article class="know-card">
@@ -488,10 +487,11 @@ body.calc-modal-open{overflow:hidden;}
           <p class="know-src">IEC 62548</p>
         </article>
         <article class="know-card">
-          <h3>تيار المصفوفة</h3>
-          <div class="equation">I_pv = P_actual ÷ V_string</div>
-          <p>التيار الكلي = القدرة الفعلية ÷ جهد السلسلة.</p>
-          <div class="know-app">📐 5,500 ÷ 210 = 26.2 A</div>
+          <h3>تيار السلسلة وتيار المصفوفة</h3>
+          <div class="equation">I_string ≈ P_panel ÷ Vmp_panel</div>
+          <div class="equation">I_array = I_string × n_strings</div>
+          <p>تيار السلسلة ≈ قدرة اللوح ÷ Vmp عند STC — تقريبي، راجع ورقة البيانات لتيار Imp. تيار المصفوفة = مجموع تيارات السلاسل المتوازية.</p>
+          <div class="know-app">📐 550 ÷ 42 ≈ 13.1 A · 13.1 × 4 ≈ 52.4 A</div>
           <p class="know-src">IEC 62548</p>
         </article>
       </div>
@@ -705,36 +705,6 @@ body.calc-modal-open{overflow:hidden;}
  }));
  document.getElementById('year').textContent = new Date().getFullYear();
 
- const ids = ['voltage','capacity','dod','eff','load'];
- const els = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
- const hoursResult = document.getElementById('hoursResult');
- const energyResult = document.getElementById('energyResult');
- const calcNotice = document.getElementById('calcNotice');
- function calculate() {
-   const V = Number(els.voltage.value), Ah = Number(els.capacity.value);
-   const dod = Number(els.dod.value), eff = Number(els.eff.value), load = Number(els.load.value);
-   const valid = Number.isFinite(V) && Number.isFinite(Ah) && Number.isFinite(dod) && Number.isFinite(eff) && Number.isFinite(load)
-     && Ah > 0 && Ah <= 5000 && dod > 0 && dod <= 100 && eff > 0 && eff <= 100 && load > 0 && load <= 100000;
-   if (!valid) {
-     hoursResult.textContent = 'تحقق من المدخلات';
-     energyResult.textContent = 'يجب أن تكون السعة والحمل موجبين، وأن تكون النسب بين 1 و100.';
-     calcNotice.textContent = 'لم يتم حساب النتيجة بسبب مدخلات غير صالحة.';
-     return;
-   }
-   const nominalWh = V * Ah;
-   const usableWh = nominalWh * (dod / 100) * (eff / 100);
-   const hours = usableWh / load;
-   if (!Number.isFinite(hours) || hours <= 0) {
-     hoursResult.textContent = 'تعذر الحساب'; energyResult.textContent = 'راجع القيم المدخلة.'; return;
-   }
-   hoursResult.textContent = hours < 0.1 ? 'أقل من 0.1 ساعة' : hours.toLocaleString('ar', {maximumFractionDigits:2}) + ' ساعة';
-   energyResult.textContent = 'طاقة اسمية تقريبية: ' + nominalWh.toLocaleString('ar',{maximumFractionDigits:0}) + ' واط-ساعة؛ طاقة بعد النسب المدخلة: ' + usableWh.toLocaleString('ar',{maximumFractionDigits:0}) + ' واط-ساعة.';
-   calcNotice.textContent = 'تقدير مبسط يفترض جهدًا اسميًا ثابتًا وحملًا ثابتًا. لا يشمل استهلاك العاكس دون حمل أو تأثير معدل التفريغ والحرارة والعمر وهبوط الجهد وحدود BMS.';
- }
- if (els.voltage && els.capacity && els.dod && els.eff && els.load) {
-   ids.forEach(id => els[id].addEventListener('input', calculate));
-   calculate();
- }
  document.getElementById('serviceForm').addEventListener('submit', event => {
    event.preventDefault();
    const name = document.getElementById('customerName').value.trim();
@@ -763,7 +733,7 @@ body.calc-modal-open{overflow:hidden;}
 })();
 </script>
 <!-- CSS الحاسبة يحقنها solar-calculator.js تلقائيًا -->
-<script src="solar-v3.js?v=1791819376" defer></script>
+<script src="solar-v3.js?v=1791995930" defer></script>
 
 <!-- ═══ زر الحاسبة العائم ═══ -->
 <button type="button" id="openCalcBtn" class="calc-fab" aria-label="افتح حاسبة الطاقة الشمسية">
@@ -771,7 +741,6 @@ body.calc-modal-open{overflow:hidden;}
   <span class="calc-fab-label">حاسبة الأسد للطاقة</span>
   <span class="calc-fab-badge">مجاني</span>
 </button>
-
 
 <!-- ═══ Modal الحاسبة ═══ -->
 <div id="calcModal" class="calc-modal" role="dialog" aria-modal="true" aria-labelledby="calcModalTitle">
