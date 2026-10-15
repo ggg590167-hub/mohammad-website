@@ -24,3 +24,6 @@ __pycache__/
 # ═══ OS ═══
 .DS_Store
 Thumbs.db
+
+# Build artifacts (readable bundles)
+solar-v3.unobfuscated.js
