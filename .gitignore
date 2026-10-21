@@ -27,3 +27,10 @@ Thumbs.db
 
 # Build artifacts (readable bundles)
 solar-v3.unobfuscated.js
+index.html.backup-ai-*
+ocr-phase-a.test.js
+test-filter.js
+test-ocr.js
+test-real-label.js
+verify-before.js
+solar-v3.readable.js
