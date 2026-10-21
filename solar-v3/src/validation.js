@@ -312,6 +312,16 @@ function validateSystem(systemResult) {
     ));
   }
 
+  // ═══ 8.5ب Voc بارد — فحص ضد حد MPPT ═══
+  if (systemResult.pv && systemResult.pv.vocCold != null) {
+    const mpptMaxV = (systemResult.config && systemResult.config.MPPT_MAX_VOC) || 500;
+    issues.push(...validateVoc(
+      systemResult.pv.vocCold,
+      mpptMaxV,
+      'سلسلة الألواح'
+    ));
+  }
+
   // ═══ 8.6 متطلبات الإنفرتر ═══
   // لم يعد هناك فحص بحد ثابت — المهندس يختار الإنفرتر من مواصفاته.
   // نُصدر تحذيراً معلوماتياً عند تعدد السلاسل لتذكير بالتحقق.
