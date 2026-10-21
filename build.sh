@@ -53,6 +53,36 @@ echo "════════ 5) فحص نهائي ════════"
 node --check solar-v3.js
 echo "  ✅ الحزمة سليمة نحوياً"
 
+# فحص التشويش الفعلي (متين — يقبل أنماط obfuscator المختلفة)
+O0X_COUNT=$(grep -o '_0x' solar-v3.js 2>/dev/null | wc -l)
+SIZE=$(wc -c < solar-v3.js)
+FIRST_CHAR=$(head -c 1 solar-v3.js)
+
+echo "  📊 فحص التشويش:"
+echo "    الحجم: $SIZE bytes (متوقع > 250000)"
+echo "    _0x: $O0X_COUNT (متوقع > 100)"
+echo "    الأول: '$FIRST_CHAR' (متوقع ليس /)"
+
+if [ "$SIZE" -lt 250000 ]; then
+  echo "  🛑 الحجم صغير — ليست مشوّشة"
+  rm -f solar-v3.readable.js
+  exit 1
+fi
+
+if [ "$O0X_COUNT" -lt 100 ]; then
+  echo "  🛑 _0x قليل جداً — ليست مشوّشة"
+  rm -f solar-v3.readable.js
+  exit 1
+fi
+
+if [ "$FIRST_CHAR" = "/" ]; then
+  echo "  🛑 يبدأ بـ / (تعليق مقروء) — ليست مشوّشة"
+  rm -f solar-v3.readable.js
+  exit 1
+fi
+
+echo "  ✅ التشويش مؤكَّد"
+
 rm -f solar-v3.readable.js
 
 echo

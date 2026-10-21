@@ -245,8 +245,9 @@ function buildReport(systemResult, validationResult, meta) {
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ اجتاز الفحوصات الحسابية الأولية</strong>' +
-      '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings + '</div>');
+    c8.push('<div class="sc-ok"><strong>✅ اجتاز 6/6 فحوصات منفذة</strong>' +
+      '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
+      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Voc بارد · هبوط الجهد · تنسيق كابل الألواح · التخفيض الحراري (k_temp/k_group) · Isc · RCD · تأريض · Inrush · BMS</small></div>');
   } else {
     c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
   }
