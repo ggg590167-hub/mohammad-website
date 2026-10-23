@@ -312,6 +312,16 @@ function validateSystem(systemResult) {
     ));
   }
 
+  // ═══ 8.2ب التنسيق — كابل الألواح ═══
+  if (systemResult.pvCable && systemResult.pvCable.valid !== undefined) {
+    issues.push(...validateCoordination(
+      systemResult.iPv,
+      systemResult.pvCable.breaker,
+      systemResult.pvCable.cableAmpacity,
+      'كابل الألواح'
+    ));
+  }
+
   // ═══ 8.5ب Voc بارد — فحص ضد حد MPPT ═══
   if (systemResult.pv && systemResult.pv.vocCold != null) {
     const mpptMaxV = (systemResult.config && systemResult.config.MPPT_MAX_VOC) || 500;

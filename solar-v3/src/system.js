@@ -63,7 +63,7 @@ const SYSTEM_CONFIG = Object.freeze({
   MIN_TEMP_C: 0,              // °C — أدنى حرارة تصميمية (اليمن — افتراضي)
   MPPT_MAX_VOC: 500,          // V — حد مرجعي افتراضي (راجع ورقة الإنفرتر)
   // ═══ التخفيض الحراري (opt-in) ═══
-  APPLY_DERATING: false,      // false = بلا تخفيض · true = تفعيل IEC 60364-5-52
+  APPLY_DERATING: true,       // true = تفعيل التخفيض الحراري (IEC 60364-5-52)
   AMBIENT_TEMP_C: 45,         // °C — حرارة محيطة تصميمية (اليمن صيفاً)
   CABLE_INSULATION: 'XLPE',   // نوع العزل
   CABLES_IN_GROUP: 1          // عدد الكابلات المتلامسة
