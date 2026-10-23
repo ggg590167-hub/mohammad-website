@@ -102,6 +102,13 @@ const BREAKER_RATINGS = Object.freeze([
   400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500
 ]);
 
+/* IEC 61008/61009 — تصنيفات RCD (mA) */
+const RCD_RATINGS_mA = Object.freeze([10, 30, 100, 300, 500]);
+
+/* IEC 60364-5-54 — تأريض */
+const EARTH_RESISTANCE_MAX_OHM = 10;    // Ω — الحد الأقصى المقبول
+const EARTH_CABLE_MIN_MM2 = 16;          // mm² — الحد الأدنى للموصل الأرضي
+
 /* IEC 60364-5-52 — الحد الأدنى للمقاطع في التطبيقات الشمسية */
 const MIN_CABLE_BY_ROLE = Object.freeze({
   PV: 4,        // mm² — كابل الألواح
@@ -179,6 +186,9 @@ module.exports = {
   CABLE_AMPACITY,
   BREAKER_RATINGS,
   MIN_CABLE_BY_ROLE,
+  RCD_RATINGS_mA,
+  EARTH_RESISTANCE_MAX_OHM,
+  EARTH_CABLE_MIN_MM2,
   K_TEMP_XLPE,
   K_TEMP_PVC,
   K_GROUP,

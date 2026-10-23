@@ -66,7 +66,11 @@ const SYSTEM_CONFIG = Object.freeze({
   APPLY_DERATING: true,       // true = تفعيل التخفيض الحراري (IEC 60364-5-52)
   AMBIENT_TEMP_C: 45,         // °C — حرارة محيطة تصميمية (اليمن صيفاً)
   CABLE_INSULATION: 'XLPE',   // نوع العزل
-  CABLES_IN_GROUP: 1          // عدد الكابلات المتلامسة
+  CABLES_IN_GROUP: 1,         // عدد الكابلات المتلامسة
+  // ═══ RCD والتأريض ═══
+  RCD_TRIP_mA: 30,            // mA — 30mA = حماية أشخاص (IEC 60364-4-41)
+  RCD_TYPE: 'AC',             // 'AC' · 'A' · 'B'
+  EARTH_RESISTANCE_OHM: null  // Ω — قياس ميداني (null = لم يُقَس)
 });
 
 /* ═══ 1. تحليل الأحمال ═══

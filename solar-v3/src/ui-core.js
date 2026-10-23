@@ -267,14 +267,22 @@ function buildReport(systemResult, validationResult, meta) {
     c7.push(row('هبوط الجهد', fmt(ac.vDropPercent, 2) + ' %  (الحد ' + LIMITS_VD_AC + '%)'));
   }
   c7.push(row('التحقق', fmt(s.iAc, 1) + ' ≤ ' + ac.breaker + ' ≤ ' + fmt(ac.cableAmpacity, 1) + ' ' + (ac.valid ? '✅' : '🚨')));
+  if (s.config && s.config.RCD_TRIP_mA != null) {
+    c7.push(row('RCD', s.config.RCD_TRIP_mA + ' mA · نوع ' + (s.config.RCD_TYPE || 'AC') + ' (حماية أشخاص)'));
+  }
+  if (s.config && s.config.EARTH_RESISTANCE_OHM != null) {
+    c7.push(row('مقاومة التأريض', fmt(s.config.EARTH_RESISTANCE_OHM, 1) + ' Ω (الحد 10)'));
+  } else {
+    c7.push(row('مقاومة التأريض', '⚠️ لم تُقَس — قياس ميداني'));
+  }
   cards.push(card('⚡ 7. كابل AC', c7));
 
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ اجتاز 11/11 فحصاً منفذاً</strong>' +
+    c8.push('<div class="sc-ok"><strong>✅ اجتاز 13/13 فحصاً منفذاً</strong>' +
       '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
-      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Isc · RCD · تأريض · Inrush · BMS</small></div>');
+      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Isc · Inrush · BMS</small></div>');
   } else {
     c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
   }

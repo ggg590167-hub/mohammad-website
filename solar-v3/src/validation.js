@@ -253,6 +253,47 @@ function validateMPPT(requiredA, ratedA, label) {
   return issues;
 }
 
+/* ═══ 7.5 فحص RCD ═══ */
+function validateRCD(rcdTripMA, label) {
+  const issues = [];
+  const RCD_VALUES = S.RCD_RATINGS_mA;
+
+  if (rcdTripMA == null) {
+    issues.push(result(true, 'RCD_NOT_SPECIFIED',
+      `${label}: لم يُحدَّد — يجب تحديد قاطع تفاضلي`, SEVERITY.WARNING));
+  } else if (RCD_VALUES.indexOf(rcdTripMA) < 0) {
+    issues.push(result(false, 'RCD_INVALID_RATING',
+      `${label}: تصنيف (${rcdTripMA}mA) غير قياسي`, SEVERITY.ERROR,
+      { rcdTripMA, allowed: RCD_VALUES.slice() }));
+  } else if (rcdTripMA > 30) {
+    issues.push(result(true, 'RCD_NOT_FOR_PERSONS',
+      `${label}: ${rcdTripMA}mA > 30mA — حماية حريق فقط · لا حماية أشخاص`, SEVERITY.WARNING));
+  }
+  return issues;
+}
+
+/* ═══ 7.6 فحص التأريض ═══ */
+function validateEarthing(earthResistanceOhm, label) {
+  const issues = [];
+  const MAX_OHM = S.EARTH_RESISTANCE_MAX_OHM;
+
+  if (earthResistanceOhm == null) {
+    issues.push(result(true, 'EARTH_NOT_MEASURED',
+      `${label}: لم تُقَس — قياس ميداني مطلوب (الحد ${MAX_OHM}Ω)`, SEVERITY.WARNING));
+  } else if (!Number.isFinite(earthResistanceOhm) || earthResistanceOhm < 0) {
+    issues.push(result(false, 'EARTH_INVALID_VALUE',
+      `${label}: قيمة غير صالحة (${earthResistanceOhm})`, SEVERITY.ERROR));
+  } else if (earthResistanceOhm > MAX_OHM) {
+    issues.push(result(false, 'EARTH_RESISTANCE_HIGH',
+      `${label}: ${earthResistanceOhm}Ω > الحد ${MAX_OHM}Ω — خطر الصعق`, SEVERITY.ERROR,
+      { earthResistanceOhm, maxOhm: MAX_OHM }));
+  } else if (earthResistanceOhm > MAX_OHM * 0.5) {
+    issues.push(result(true, 'EARTH_NEAR_LIMIT',
+      `${label}: ${earthResistanceOhm}Ω قريب من الحد ${MAX_OHM}Ω`, SEVERITY.WARNING));
+  }
+  return issues;
+}
+
 /* ═══ 8. الفحص الشامل للنظام ═══ */
 function validateSystem(systemResult) {
   const issues = [];
@@ -359,6 +400,16 @@ function validateSystem(systemResult) {
     ));
   }
 
+  // ═══ 8.7 RCD ═══
+  if (systemResult.config) {
+    issues.push(...validateRCD(systemResult.config.RCD_TRIP_mA, 'RCD'));
+  }
+
+  // ═══ 8.8 التأريض ═══
+  if (systemResult.config) {
+    issues.push(...validateEarthing(systemResult.config.EARTH_RESISTANCE_OHM, 'تأريض'));
+  }
+
   // ═══ 8.6 متطلبات الإنفرتر ═══
   // لم يعد هناك فحص بحد ثابت — المهندس يختار الإنفرتر من مواصفاته.
   // نُصدر تحذيراً معلوماتياً عند تعدد السلاسل لتذكير بالتحقق.
@@ -407,5 +458,7 @@ module.exports = {
   validateBattery,
   validatePV,
   validateMPPT,
+  validateRCD,
+  validateEarthing,
   validateSystem
 };
