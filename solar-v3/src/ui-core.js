@@ -49,6 +49,11 @@ function ampacityRows(rows, cable, labelPrefix) {
   }
 }
 
+/* ثوابت حدود هبوط الجهد (من IEC 60364 · تطابق validation.js) */
+const LIMITS_VD_BATTERY = 1.0;
+const LIMITS_VD_PV = 2.0;
+const LIMITS_VD_AC = 3.0;
+
 function buildReport(systemResult, validationResult, meta) {
   const s = systemResult;
   const v = validationResult;
@@ -224,6 +229,9 @@ function buildReport(systemResult, validationResult, meta) {
   c6.push(row('مقطع الكابل', bc.cableSize + ' mm² × ' + bc.paths + ' مسار'));
   c6.push(row('القاطع', bc.breaker + ' A'));
   ampacityRows(c6, bc);
+  if (bc.vDropPercent != null) {
+    c6.push(row('هبوط الجهد', fmt(bc.vDropPercent, 2) + ' %  (الحد ' + LIMITS_VD_BATTERY + '%)'));
+  }
   c6.push(row('التحقق', fmt(s.iBat, 1) + ' ≤ ' + bc.breaker + ' ≤ ' + fmt(bc.cableAmpacity, 1) + ' ' + (bc.valid ? '✅' : '🚨')));
   cards.push(card('🔋 6. كابل البطارية', c6));
 
@@ -242,6 +250,9 @@ function buildReport(systemResult, validationResult, meta) {
     c6b.push(row('مقطع الكابل', pv.cableSize + ' mm² × ' + pv.paths + ' مسار'));
     c6b.push(row('القاطع', pv.breaker + ' A'));
     ampacityRows(c6b, pv);
+    if (pv.vDropPercent != null) {
+      c6b.push(row('هبوط الجهد', fmt(pv.vDropPercent, 2) + ' %  (الحد ' + LIMITS_VD_PV + '%)'));
+    }
     c6b.push(row('التحقق', fmt(s.iPv, 1) + ' ≤ ' + pv.breaker + ' ≤ ' + fmt(pv.cableAmpacity, 1) + ' ' + (pv.valid ? '✅' : '🚨')));
     cards.push(card('☀️ 6.b كابل الألواح', c6b));
   }
@@ -252,15 +263,18 @@ function buildReport(systemResult, validationResult, meta) {
   c7.push(row('مقطع الكابل', ac.cableSize + ' mm² × ' + ac.paths + ' مسار'));
   c7.push(row('القاطع', ac.breaker + ' A'));
   ampacityRows(c7, ac);
+  if (ac.vDropPercent != null) {
+    c7.push(row('هبوط الجهد', fmt(ac.vDropPercent, 2) + ' %  (الحد ' + LIMITS_VD_AC + '%)'));
+  }
   c7.push(row('التحقق', fmt(s.iAc, 1) + ' ≤ ' + ac.breaker + ' ≤ ' + fmt(ac.cableAmpacity, 1) + ' ' + (ac.valid ? '✅' : '🚨')));
   cards.push(card('⚡ 7. كابل AC', c7));
 
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ اجتاز 8/8 فحوصات منفذة</strong>' +
+    c8.push('<div class="sc-ok"><strong>✅ اجتاز 11/11 فحصاً منفذاً</strong>' +
       '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
-      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: هبوط الجهد · Isc · RCD · تأريض · Inrush · BMS</small></div>');
+      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Isc · RCD · تأريض · Inrush · BMS</small></div>');
   } else {
     c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
   }

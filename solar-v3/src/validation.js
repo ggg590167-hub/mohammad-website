@@ -322,6 +322,33 @@ function validateSystem(systemResult) {
     ));
   }
 
+  // ═══ 8.2ج هبوط الجهد — كابل البطارية ═══
+  if (systemResult.batteryCable && systemResult.batteryCable.vDropPercent != null) {
+    issues.push(...validateVoltageDrop(
+      systemResult.batteryCable.vDropPercent,
+      LIMITS.VD_BATTERY,
+      'كابل البطارية'
+    ));
+  }
+
+  // ═══ 8.2د هبوط الجهد — كابل الألواح ═══
+  if (systemResult.pvCable && systemResult.pvCable.vDropPercent != null) {
+    issues.push(...validateVoltageDrop(
+      systemResult.pvCable.vDropPercent,
+      LIMITS.VD_PV,
+      'كابل الألواح'
+    ));
+  }
+
+  // ═══ 8.2هـ هبوط الجهد — كابل AC ═══
+  if (systemResult.acCable && systemResult.acCable.vDropPercent != null) {
+    issues.push(...validateVoltageDrop(
+      systemResult.acCable.vDropPercent,
+      LIMITS.VD_AC,
+      'كابل AC'
+    ));
+  }
+
   // ═══ 8.5ب Voc بارد — فحص ضد حد MPPT ═══
   if (systemResult.pv && systemResult.pv.vocCold != null) {
     const mpptMaxV = (systemResult.config && systemResult.config.MPPT_MAX_VOC) || 500;

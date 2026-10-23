@@ -100,12 +100,17 @@ function selectCableAndBreaker(input) {
     const paths = Math.ceil(breaker / maxAmp);
     const totalAmp = maxAmp * paths;
 
+    const vDropVoltsP = finalVoltageDrop(L, I, maxCable, paths);
+    const vDropPercentP = V > 0 ? (vDropVoltsP / V) * 100 : 0;
+
     return {
       cableSize: maxCable,
       paths: paths,
       breaker: breaker,
       cableAmpacity: totalAmp,
       requiredArea: requiredArea,
+      vDropVolts: vDropVoltsP,
+      vDropPercent: vDropPercentP,
       valid: I <= totalAmp,
       reason: `${paths} مسارات × ${maxCable}mm² (التيار ${I.toFixed(1)}A > تحمل 240mm² = ${maxAmp}A)`
     };
@@ -118,12 +123,18 @@ function selectCableAndBreaker(input) {
     ? S.derateAmpacity(ampacityTable, kTemp, kGroup)
     : ampacityTable;
 
+  // حساب هبوط الجهد الفعلي
+  const vDropVolts = finalVoltageDrop(L, I, finalSize, 1);
+  const vDropPercent = V > 0 ? (vDropVolts / V) * 100 : 0;
+
   const result = {
     cableSize: finalSize,
     paths: 1,
     breaker: breaker,
     cableAmpacity: ampacity,
     requiredArea: requiredArea,
+    vDropVolts: vDropVolts,
+    vDropPercent: vDropPercent,
     valid: I <= ampacity && breaker <= ampacity,
     reason: applyDerating
       ? `مقطع ${finalSize}mm² — جدول ${ampacityTable}A × ${kTemp.toFixed(2)} × ${kGroup.toFixed(2)} = ${ampacity.toFixed(0)}A، قاطع ${breaker}A — ${I.toFixed(1)}A ≤ ${breaker}A ≤ ${ampacity.toFixed(0)}A`
