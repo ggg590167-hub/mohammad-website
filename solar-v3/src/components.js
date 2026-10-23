@@ -47,8 +47,17 @@ function selectCableAndBreaker(input) {
   const V = input.voltage;
   const dV = input.dropPercent == null ? 1 : input.dropPercent;
   const minArea = input.minArea || 10;
-  const jMax = input.jMax;   // اختياري — يُلغى القيد الحراري إن لم يُمرَّر
+  const jMax = input.jMax;
   const safety = input.safetyFactor || 1.1;
+  // التخفيض الحراري — opt-in · لا يُفعَّل إلا إذا applyDerating === true
+  const applyDerating = input.applyDerating === true;
+  const ambientTemp = input.ambientTemp;
+  const cablesInGroup = input.cablesInGroup || 1;
+  const insulationType = input.insulationType || 'XLPE';
+  const kTemp = (applyDerating && Number.isFinite(ambientTemp))
+    ? S.getKTemp(ambientTemp, insulationType)
+    : 1.0;
+  const kGroup = applyDerating ? S.getKGroup(cablesInGroup) : 1.0;
 
   // ═══ التحقق من المدخلات ═══
   if (!Number.isFinite(I) || I <= 0) {
@@ -66,7 +75,9 @@ function selectCableAndBreaker(input) {
   const breaker = S.roundUpToStandard(S.BREAKER_RATINGS, breakerTarget);
 
   // ═══ الخطوة 2: المقطع المطلوب لتحمل القاطع ═══
-  const cableForBreaker = S.smallestCableForCurrent(breaker);
+  const cableForBreaker = applyDerating
+    ? S.smallestCableForDeratedCurrent(breaker, kTemp, kGroup)
+    : S.smallestCableForCurrent(breaker);
 
   // ═══ الخطوة 3: المقطع المطلوب من هبوط الجهد ═══
   const aVD = P.areaFromVoltageDrop(L, I, V, dV);
@@ -101,19 +112,36 @@ function selectCableAndBreaker(input) {
   }
 
   // ═══ الحالة العادية: مقطع واحد ═══
-  // المقطع النهائي = الأكبر بين (مقطع القاطع، المقطع من VD/الحرارة)
   const finalSize = Math.max(cableForBreaker, S.roundUpToStandard(S.CABLE_SIZES, requiredArea));
-  const ampacity = S.getCableAmpacity(finalSize);
+  const ampacityTable = S.getCableAmpacity(finalSize);
+  const ampacity = applyDerating
+    ? S.derateAmpacity(ampacityTable, kTemp, kGroup)
+    : ampacityTable;
 
-  return {
+  const result = {
     cableSize: finalSize,
     paths: 1,
     breaker: breaker,
     cableAmpacity: ampacity,
     requiredArea: requiredArea,
     valid: I <= ampacity && breaker <= ampacity,
-    reason: `مقطع ${finalSize}mm² (تحمل ${ampacity}A)، قاطع ${breaker}A — ${I.toFixed(1)}A ≤ ${breaker}A ≤ ${ampacity}A`
+    reason: applyDerating
+      ? `مقطع ${finalSize}mm² — جدول ${ampacityTable}A × ${kTemp.toFixed(2)} × ${kGroup.toFixed(2)} = ${ampacity.toFixed(0)}A، قاطع ${breaker}A — ${I.toFixed(1)}A ≤ ${breaker}A ≤ ${ampacity.toFixed(0)}A`
+      : `مقطع ${finalSize}mm² (تحمل ${ampacityTable}A)، قاطع ${breaker}A — ${I.toFixed(1)}A ≤ ${breaker}A ≤ ${ampacityTable}A`
   };
+
+  // معلومات إضافية للعرض (لا تؤثر على القرار)
+  if (applyDerating) {
+    result.cableAmpacity_table = ampacityTable;
+    result.kTemp = kTemp;
+    result.kGroup = kGroup;
+    result.ambientTemp = ambientTemp;
+    result.cablesInGroup = cablesInGroup;
+    result.insulationType = insulationType;
+    result.applyDerating = true;
+  }
+
+  return result;
 }
 
 /* ═══ دالة مساعدة: هبوط الجهد النهائي ═══ */

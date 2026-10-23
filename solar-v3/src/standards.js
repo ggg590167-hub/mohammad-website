@@ -38,6 +38,63 @@ const CABLE_AMPACITY = Object.freeze({
   240: 514
 });
 
+/* ═══ IEC 60364-5-52 — معاملات التخفيض الحراري ═══ */
+
+/* k_temp: تصحيح درجة حرارة المحيط */
+const K_TEMP_XLPE = Object.freeze({
+  10: 1.15, 15: 1.12, 20: 1.08, 25: 1.04, 30: 1.00,
+  35: 0.96, 40: 0.91, 45: 0.87, 50: 0.82, 55: 0.76, 60: 0.71, 65: 0.65, 70: 0.58
+});
+
+const K_TEMP_PVC = Object.freeze({
+  10: 1.22, 15: 1.17, 20: 1.12, 25: 1.06, 30: 1.00,
+  35: 0.94, 40: 0.87, 45: 0.79, 50: 0.71, 55: 0.61, 60: 0.50
+});
+
+/* k_group: تصحيح تجميع الكابلات */
+const K_GROUP = Object.freeze({
+  1: 1.00, 2: 0.80, 3: 0.70, 4: 0.65, 5: 0.60,
+  6: 0.57, 7: 0.54, 8: 0.52, 9: 0.50, 12: 0.45, 16: 0.41, 20: 0.38
+});
+
+function getKTemp(tempC, insulation) {
+  const table = (insulation || 'XLPE').toUpperCase() === 'PVC' ? K_TEMP_PVC : K_TEMP_XLPE;
+  const keys = Object.keys(table).map(Number).sort((a,b) => a-b);
+  let closest = keys[0];
+  let minDiff = Math.abs(tempC - closest);
+  for (const k of keys) {
+    const diff = Math.abs(tempC - k);
+    if (diff < minDiff) { minDiff = diff; closest = k; }
+  }
+  return table[closest];
+}
+
+function getKGroup(count) {
+  if (!Number.isFinite(count) || count < 1) return K_GROUP[1];
+  const keys = Object.keys(K_GROUP).map(Number).sort((a,b) => a-b);
+  let closest = keys[0];
+  let minDiff = Math.abs(count - closest);
+  for (const k of keys) {
+    const diff = Math.abs(count - k);
+    if (diff < minDiff) { minDiff = diff; closest = k; }
+  }
+  return K_GROUP[closest];
+}
+
+function derateAmpacity(izTable, kTemp, kGroup) {
+  return izTable * kTemp * kGroup;
+}
+
+function smallestCableForDeratedCurrent(current, kTemp, kGroup, sizes) {
+  sizes = sizes || CABLE_SIZES;
+  for (let i = 0; i < sizes.length; i++) {
+    const sz = sizes[i];
+    const amp = getCableAmpacity(sz);
+    if (amp !== null && amp * kTemp * kGroup >= current) return sz;
+  }
+  return null;
+}
+
 /* IEC 60898-1 + IEC 60947-2 — تصنيفات القواطع (A) */
 const BREAKER_RATINGS = Object.freeze([
   6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 300,
@@ -121,6 +178,13 @@ module.exports = {
   CABLE_AMPACITY,
   BREAKER_RATINGS,
   MIN_CABLE_BY_ROLE,
+  K_TEMP_XLPE,
+  K_TEMP_PVC,
+  K_GROUP,
+  getKTemp,
+  getKGroup,
+  derateAmpacity,
+  smallestCableForDeratedCurrent,
   roundUpToStandard,
   roundDownToStandard,
   getCableAmpacity,

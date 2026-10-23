@@ -61,7 +61,12 @@ const SYSTEM_CONFIG = Object.freeze({
   DEFAULT_PANEL_VOC: 49.7,
   BETA_VOC: -0.003,           // 1/°C — معامل افتراضي (راجع ورقة اللوح)
   MIN_TEMP_C: 0,              // °C — أدنى حرارة تصميمية (اليمن — افتراضي)
-  MPPT_MAX_VOC: 500           // V — حد مرجعي افتراضي (راجع ورقة الإنفرتر)
+  MPPT_MAX_VOC: 500,          // V — حد مرجعي افتراضي (راجع ورقة الإنفرتر)
+  // ═══ التخفيض الحراري (opt-in) ═══
+  APPLY_DERATING: false,      // false = بلا تخفيض · true = تفعيل IEC 60364-5-52
+  AMBIENT_TEMP_C: 45,         // °C — حرارة محيطة تصميمية (اليمن صيفاً)
+  CABLE_INSULATION: 'XLPE',   // نوع العزل
+  CABLES_IN_GROUP: 1          // عدد الكابلات المتلامسة
 });
 
 /* ═══ 1. تحليل الأحمال ═══
@@ -493,8 +498,11 @@ function analyzeSystem(input) {
     legLength: pvCableLength,
     voltage: pvStringV,
     dropPercent: 2,
-    minArea: 4
-    // jMax غير مُمرَّر — القيد الحراري مُلغى (IEC 60364-5-52)
+    minArea: 4,
+    applyDerating: SYSTEM_CONFIG.APPLY_DERATING,
+    ambientTemp: SYSTEM_CONFIG.AMBIENT_TEMP_C,
+    cablesInGroup: SYSTEM_CONFIG.CABLES_IN_GROUP,
+    insulationType: SYSTEM_CONFIG.CABLE_INSULATION
   });
 
   // ═══ 5. البطاريات ═══
@@ -510,7 +518,11 @@ function analyzeSystem(input) {
     voltage: battery.voltage,
     dropPercent: 1,
     minArea: 10,
-    jMax: 3   // تحفّظ مقصود لكابل البطارية
+    jMax: 3,
+    applyDerating: SYSTEM_CONFIG.APPLY_DERATING,
+    ambientTemp: SYSTEM_CONFIG.AMBIENT_TEMP_C,
+    cablesInGroup: SYSTEM_CONFIG.CABLES_IN_GROUP,
+    insulationType: SYSTEM_CONFIG.CABLE_INSULATION
   });
 
   // ═══ 8. تيار AC ═══
@@ -524,7 +536,11 @@ function analyzeSystem(input) {
     voltage: acV,
     dropPercent: 2,
     minArea: 2.5,
-    jMax: 5   // معياري لكابل AC
+    jMax: 5,
+    applyDerating: SYSTEM_CONFIG.APPLY_DERATING,
+    ambientTemp: SYSTEM_CONFIG.AMBIENT_TEMP_C,
+    cablesInGroup: SYSTEM_CONFIG.CABLES_IN_GROUP,
+    insulationType: SYSTEM_CONFIG.CABLE_INSULATION
   });
 
   // ═══ النتيجة الكاملة ═══
