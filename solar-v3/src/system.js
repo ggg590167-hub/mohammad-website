@@ -70,7 +70,10 @@ const SYSTEM_CONFIG = Object.freeze({
   // ═══ RCD والتأريض ═══
   RCD_TRIP_mA: 30,            // mA — 30mA = حماية أشخاص (IEC 60364-4-41)
   RCD_TYPE: 'AC',             // 'AC' · 'A' · 'B'
-  EARTH_RESISTANCE_OHM: null  // Ω — قياس ميداني (null = لم يُقَس)
+  EARTH_RESISTANCE_OHM: null, // Ω — قياس ميداني (null = لم يُقَس)
+  // ═══ Isc Prospective (v3.8) ═══
+  BATTERY_R_MODULE_MOHM: 8,   // mΩ — LiFePO₄ نموذجي (IEC 62619)
+  BREAKER_ICN_KA: 6           // kA — MCB DC قياسي (IEC 60947-2)
 });
 
 /* ═══ 1. تحليل الأحمال ═══

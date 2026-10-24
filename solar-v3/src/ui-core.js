@@ -233,6 +233,56 @@ function buildReport(systemResult, validationResult, meta) {
     c6.push(row('هبوط الجهد', fmt(bc.vDropPercent, 2) + ' %  (الحد ' + LIMITS_VD_BATTERY + '%)'));
   }
   c6.push(row('التحقق', fmt(s.iBat, 1) + ' ≤ ' + bc.breaker + ' ≤ ' + fmt(bc.cableAmpacity, 1) + ' ' + (bc.valid ? '✅' : '🚨')));
+  if (s.battery && s.config &&
+      s.config.BATTERY_R_MODULE_MOHM != null &&
+      s.config.BREAKER_ICN_KA != null) {
+    const nU = s.battery.units || s.battery.towers || 1;
+    const rP = s.config.BATTERY_R_MODULE_MOHM / Math.max(1, nU);
+    const vB = s.battery.voltage || 48;
+    const iscKA = (vB / (rP / 1000)) / 1000;
+    const icnKA = s.config.BREAKER_ICN_KA;
+    const pass = iscKA <= icnKA;
+
+    c6.push(row('Isc متوقع (بطارية)', fmt(iscKA, 1) + ' kA  ' +
+      (pass ? '✅' : '⚠️') + '  (قدرة القاطع ' + icnKA + ' kA)'));
+
+    if (!pass) {
+      var iscLevel, iscAdvice;
+      if (iscKA > 50) {
+        iscLevel = '🚨 خطر حرج';
+        iscAdvice =
+          '<div class="sc-warn" style="border-right:3px solid #dc2626;padding:10px">' +
+          '<strong>' + iscLevel + ' — Isc عالٍ جداً (' + fmt(iscKA, 1) + ' kA) > 50 kA</strong>' +
+          '<br>🔴 الحماية المطلوبة:' +
+          '<br>• فيوز <strong>Class T فردي لكل وحدة</strong> (150A · 200 kA Icn)' +
+          '<br>• فيوز <strong>Class T رئيسي</strong> (400A · 200 kA Icn)' +
+          '<br>• مراجعة BMS (حدود تيار القصر)' +
+          '<br>💡 <strong>بديل معماري:</strong> النظر في HV (400V) — ' +
+          'عدد وحدات متوازية أقل → Isc أقل' +
+          '</div>';
+      } else if (iscKA > 20) {
+        iscLevel = '⚠️ خطر متوسط';
+        iscAdvice =
+          '<div class="sc-warn" style="border-right:3px solid #f59e0b;padding:10px">' +
+          '<strong>' + iscLevel + ' — Isc متوسط (' + fmt(iscKA, 1) + ' kA) · 20-50 kA</strong>' +
+          '<br>🔧 الحماية المطلوبة:' +
+          '<br>• فيوز <strong>Class T رئيسي</strong> (200A · 200 kA Icn)' +
+          '<br>• وضع الفيوز على مسافة < 30 سم من البطارية' +
+          '<br>• مراجعة قدرة قطع BMS' +
+          '</div>';
+      } else {
+        iscLevel = '⚠️ خطر منخفض';
+        iscAdvice =
+          '<div class="sc-warn" style="border-right:3px solid #eab308;padding:10px">' +
+          '<strong>' + iscLevel + ' — Isc منخفض (' + fmt(iscKA, 1) + ' kA) < 20 kA</strong>' +
+          '<br>🔧 الحماية المطلوبة:' +
+          '<br>• فيوز <strong>Class T رئيسي</strong> (100A · 200 kA Icn)' +
+          '<br>• بديل: MCCB بـ25 kA Icn' +
+          '</div>';
+      }
+      c6.push(iscAdvice);
+    }
+  }
   cards.push(card('🔋 6. كابل البطارية', c6));
 
   /* ═══ بطاقة 6.b: كابل الألواح ═══ */
@@ -280,9 +330,9 @@ function buildReport(systemResult, validationResult, meta) {
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ اجتاز 13/13 فحصاً منفذاً</strong>' +
+    c8.push('<div class="sc-ok"><strong>✅ اجتاز 14/14 فحصاً منفذاً</strong>' +
       '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
-      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Isc · Inrush · BMS</small></div>');
+      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Inrush · BMS</small></div>');
   } else {
     c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
   }

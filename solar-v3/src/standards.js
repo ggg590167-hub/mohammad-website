@@ -102,6 +102,23 @@ const BREAKER_RATINGS = Object.freeze([
   400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500
 ]);
 
+/* IEC 60947-2 — قدرة قطع القواطع DC (kA) */
+const BREAKER_ICN_KA = Object.freeze({
+  MCB_STANDARD: 6,
+  MCB_INDUSTRIAL: 10,
+  MCCB_BATTERY: 25,
+  CLASS_T_FUSE: 200
+});
+
+/* IEC 62619 — المقاومة الداخلية النموذجية للبطاريات (mΩ) */
+const BATTERY_R_MODULE_MOHM = Object.freeze({
+  LIFEPO4_TYPICAL: 8,
+  LIFEPO4_GOOD: 5,
+  LIFEPO4_HIGH: 15,
+  LEAD_ACID_TYPICAL: 20,
+  AGM_TYPICAL: 15
+});
+
 /* IEC 61008/61009 — تصنيفات RCD (mA) */
 const RCD_RATINGS_mA = Object.freeze([10, 30, 100, 300, 500]);
 
@@ -187,6 +204,8 @@ module.exports = {
   BREAKER_RATINGS,
   MIN_CABLE_BY_ROLE,
   RCD_RATINGS_mA,
+  BREAKER_ICN_KA,
+  BATTERY_R_MODULE_MOHM,
   EARTH_RESISTANCE_MAX_OHM,
   EARTH_CABLE_MIN_MM2,
   K_TEMP_XLPE,

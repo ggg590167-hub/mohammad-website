@@ -294,6 +294,32 @@ function validateEarthing(earthResistanceOhm, label) {
   return issues;
 }
 
+/* ═══ 7.7 فحص Isc Prospective — WARNING (ليس ERROR) ═══ */
+function validateIscProspective(iscKA, icnKA, label) {
+  const issues = [];
+  if (iscKA == null || icnKA == null ||
+      !Number.isFinite(iscKA) || !Number.isFinite(icnKA) ||
+      iscKA <= 0 || icnKA <= 0) {
+    return issues;
+  }
+  if (iscKA > icnKA) {
+    var severity = iscKA > 50 ? 'حرج' : (iscKA > 20 ? 'متوسط' : 'منخفض');
+    var hint = iscKA > 50
+      ? 'فيوز Class T فردي لكل وحدة + رئيسي (200 kA)'
+      : 'فيوز Class T رئيسي (200 kA) أو MCCB 25 kA';
+    issues.push(result(true, 'ISC_EXCEEDS_BREAKER',
+      `${label}: تيار قصر متوقع (${iscKA.toFixed(1)} kA) > قدرة القاطع (${icnKA} kA) — خطر ${severity} · ${hint}`,
+      SEVERITY.WARNING,
+      { iscKA, icnKA, severity, recommended_icn: Math.ceil(iscKA) }));
+  } else if (iscKA > icnKA * 0.7) {
+    issues.push(result(true, 'ISC_NEAR_LIMIT',
+      `${label}: تيار قصر متوقع (${iscKA.toFixed(1)} kA) قريب من قدرة القطع (${icnKA} kA)`,
+      SEVERITY.WARNING,
+      { iscKA, icnKA }));
+  }
+  return issues;
+}
+
 /* ═══ 8. الفحص الشامل للنظام ═══ */
 function validateSystem(systemResult) {
   const issues = [];
@@ -410,6 +436,24 @@ function validateSystem(systemResult) {
     issues.push(...validateEarthing(systemResult.config.EARTH_RESISTANCE_OHM, 'تأريض'));
   }
 
+  // ═══ 8.9 Isc Prospective — بطارية (WARNING) ═══
+  if (systemResult.battery && systemResult.config &&
+      systemResult.config.BATTERY_R_MODULE_MOHM != null &&
+      systemResult.config.BREAKER_ICN_KA != null) {
+    const nUnits = systemResult.battery.units
+                  || systemResult.battery.towers
+                  || 1;
+    const rModule = systemResult.config.BATTERY_R_MODULE_MOHM;
+    const rParallel = rModule / Math.max(1, nUnits);
+    const vBat = systemResult.battery.voltage || 48;
+    const iscKA = (vBat / (rParallel / 1000)) / 1000;
+    issues.push(...validateIscProspective(
+      iscKA,
+      systemResult.config.BREAKER_ICN_KA,
+      'بطارية'
+    ));
+  }
+
   // ═══ 8.6 متطلبات الإنفرتر ═══
   // لم يعد هناك فحص بحد ثابت — المهندس يختار الإنفرتر من مواصفاته.
   // نُصدر تحذيراً معلوماتياً عند تعدد السلاسل لتذكير بالتحقق.
@@ -460,5 +504,6 @@ module.exports = {
   validateMPPT,
   validateRCD,
   validateEarthing,
+  validateIscProspective,
   validateSystem
 };
