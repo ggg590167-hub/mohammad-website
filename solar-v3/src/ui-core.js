@@ -327,10 +327,66 @@ function buildReport(systemResult, validationResult, meta) {
   }
   cards.push(card('⚡ 7. كابل AC', c7));
 
+  /* ═══ بطاقة 9: قائمة تحقق يدوي (Inrush + BMS) ═══ */
+  {
+    const c9 = [];
+    c9.push('<div style="padding:10px;background:#1a1c1d;border-right:3px solid #60a5fa;border-radius:6px;margin-bottom:10px">' +
+      '<strong style="color:#60a5fa">⚡ Inrush (تيار البدء) — يحتاج تحقق يدوي</strong>' +
+      '<br><small style="color:#b6b8bb">الأجهزة تسحب تياراً أعلى عند بدء التشغيل. قد يفصل الإنفرتر إذا بدأت 2+ أجهزة كبيرة معاً.</small>' +
+      '</div>');
+
+    c9.push(row('قدرة إقلاع الإنفرتر', fmtInt(s.inverter.stdW * 2) + ' W (2× القدرة المستمرة)'));
+    c9.push(row('📐 كيف تحسب Inrush', 'watts × surge'));
+
+    c9.push('<div style="padding:8px;background:#0b0c0d;border-radius:6px;margin:8px 0;font-size:12px">' +
+      '<strong style="color:#dbeafe">قيم surge التقريبية:</strong>' +
+      '<br>• مكيف عادي: 4× · مكيف إنفرتر: 1.2×' +
+      '<br>• ثلاجة: 3× · مضخة: 3×' +
+      '<br>• لمبات LED: 1× · لمبات فلورسنت: 2×' +
+      '<br>• فرن/سخان: 1× (مقاومة)' +
+      '<br><br><strong style="color:#fbbf24">مثال:</strong> مكيف 1.5kW × 4 = 6,000W' +
+      '</div>');
+
+    c9.push('<div style="padding:10px;background:#1a1c1d;border-right:3px solid #a3e635;border-radius:6px;margin:10px 0">' +
+      '<strong style="color:#a3e635">🔋 حدود BMS — يحتاج مراجعة ورقة البطارية</strong>' +
+      '<br><small style="color:#b6b8bb">BMS يفصل عند تجاوز حد الشحن/التفريغ/الحرارة.</small>' +
+      '</div>');
+
+    // التيارات الفعلية
+    if (s.iPv != null) {
+      c9.push(row('تيار الشحن الفعلي', fmt(s.iPv, 1) + ' A'));
+    }
+    if (s.iBat != null) {
+      c9.push(row('تيار التفريغ الفعلي', fmt(s.iBat, 1) + ' A'));
+    }
+
+    c9.push(row('📐 كيف تتحقق', 'تيار الشحن/التفريغ < حد BMS × عدد الوحدات'));
+
+    c9.push('<div style="padding:8px;background:#0b0c0d;border-radius:6px;margin:8px 0;font-size:12px">' +
+      '<strong style="color:#dbeafe">حدود BMS الشائعة (لكل وحدة):</strong>' +
+      '<br>• Pylontech US3000C: 37A شحن · 37A تفريغ' +
+      '<br>• BYD LVS: 50A · 50A' +
+      '<br>• Pytes 48100: 50A · 100A' +
+      '<br>• Deye BOS-G: 50A · 50A' +
+      '<br><br><strong style="color:#fbbf24">حرارة:</strong> BMS يفصل عند > 60°C عادة' +
+      '</div>');
+
+    c9.push('<div style="padding:10px;background:#1a1c1d;border-right:3px solid #fbbf24;border-radius:6px">' +
+      '<strong style="color:#fbbf24">✅ قائمة تحقق يدوي:</strong>' +
+      '<br>☐ Inrush كل جهاز من LRA على لوحة الجهاز' +
+      '<br>☐ مجموع Inrush < قدرة إقلاع الإنفرتر' +
+      '<br>☐ BMS max charge ≥ تيار الشحن الفعلي' +
+      '<br>☐ BMS max discharge ≥ تيار التفريغ الفعلي' +
+      '<br>☐ BMS max temp > حرارة البيئة المتوقعة' +
+      '</div>');
+
+    cards.push(card('📋 9. تحقق يدوي: Inrush + BMS', c9));
+  }
+
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ اجتاز 14/14 فحصاً منفذاً</strong>' +
+    c8.push('<div class="sc-ok"><strong>✅ اجتاز 14/14 فحصاً منفذاً + تحقق يدوي مطلوب</strong>' +
       '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
       '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Inrush · BMS</small></div>');
   } else {
