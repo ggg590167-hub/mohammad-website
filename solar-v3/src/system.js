@@ -518,6 +518,10 @@ function analyzeSystem(input) {
   // ═══ 6. تيار البطارية ═══
   const iBat = batteryCurrent(inverter.stdW, battery.voltage, SYSTEM_CONFIG.INV_EFF);
 
+  // ═══ 6.b تيار الشحن (تقديري) ═══
+  const iChargeMax = (pv.actualW * SYSTEM_CONFIG.CC_EFF) / battery.voltage;
+  const iChargeReal = (pv.actualW * pv.pr) / battery.voltage;
+
   // ═══ 7. كابل البطارية + القاطع ═══
   const batteryCable = C.selectCableAndBreaker({
     current: iBat,
@@ -567,6 +571,8 @@ function analyzeSystem(input) {
     pvStringV,
     pvCable,
     iBat,
+    iChargeMax,
+    iChargeReal,
     batteryCable,
     iAc,
     acCable,

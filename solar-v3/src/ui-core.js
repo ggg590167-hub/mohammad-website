@@ -353,14 +353,28 @@ function buildReport(systemResult, validationResult, meta) {
       '</div>');
 
     // التيارات الفعلية
+    if (s.iChargeMax != null) {
+      c9.push(row('تيار الشحن (تقدير من القدرة الاسمية)', fmt(s.iChargeMax, 1) + ' A'));
+    }
+    if (s.iChargeReal != null) {
+      c9.push(row('تيار الشحن (تقديري بعد PR)', fmt(s.iChargeReal, 1) + ' A'));
+    }
     if (s.iPv != null) {
-      c9.push(row('تيار الشحن الفعلي', fmt(s.iPv, 1) + ' A'));
+      c9.push(row('تيار الألواح (I_pv)', fmt(s.iPv, 1) + ' A'));
     }
     if (s.iBat != null) {
-      c9.push(row('تيار التفريغ الفعلي', fmt(s.iBat, 1) + ' A'));
+      c9.push(row('تيار التفريغ (تقديري عند قدرة الإنفرتر)', fmt(s.iBat, 1) + ' A'));
     }
 
     c9.push(row('📐 كيف تتحقق', 'تيار الشحن/التفريغ < حد BMS × عدد الوحدات'));
+
+    c9.push('<div style="padding:8px;background:#1a1c1d;border-right:3px solid #60a5fa;border-radius:6px;margin:8px 0;font-size:12px">' +
+      '<strong style="color:#60a5fa">ℹ️ ملاحظة:</strong> iChargeMax و iChargeReal <b>تقديران بديلان</b> — لا يُعتبران اختبارين مستقلين. حد الشحن الحقيقي يُؤخذ من ورقة بيانات BMS/MPPT/الإنفرتر.' +
+      '</div>');
+
+    c9.push('<div style="padding:8px;background:#1a1c1d;border-right:3px solid #fbbf24;border-radius:6px;margin:8px 0;font-size:12px">' +
+      '<strong style="color:#fbbf24">⚠️ تنبيه:</strong> السلامة تتطلب التحقق من BMS والكابلات والمنظم فعلياً.' +
+      '</div>');
 
     c9.push('<div style="padding:8px;background:#0b0c0d;border-radius:6px;margin:8px 0;font-size:12px">' +
       '<strong style="color:#dbeafe">حدود BMS الشائعة (لكل وحدة):</strong>' +
@@ -375,8 +389,9 @@ function buildReport(systemResult, validationResult, meta) {
       '<strong style="color:#fbbf24">✅ قائمة تحقق يدوي:</strong>' +
       '<br>☐ Inrush كل جهاز من LRA على لوحة الجهاز' +
       '<br>☐ مجموع Inrush < قدرة إقلاع الإنفرتر' +
-      '<br>☐ BMS max charge ≥ تيار الشحن الفعلي' +
-      '<br>☐ BMS max discharge ≥ تيار التفريغ الفعلي' +
+      '<br>☐ BMS max charge ≥ ' + (s.iChargeMax != null ? fmt(s.iChargeMax, 1) : '؟') + ' A (تقدير من الاسمي)' +
+      '<br>☐ BMS max charge ≥ ' + (s.iChargeReal != null ? fmt(s.iChargeReal, 1) : '؟') + ' A (تقدير بعد PR)' +
+      '<br>☐ BMS max discharge ≥ ' + (s.iBat != null ? fmt(s.iBat, 1) : '؟') + ' A (تقديري)' +
       '<br>☐ BMS max temp > حرارة البيئة المتوقعة' +
       '</div>');
 

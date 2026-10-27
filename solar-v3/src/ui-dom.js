@@ -209,6 +209,13 @@ function restoreInputs() {
 }
 
 /* ═══ تصدير PDF ═══ */
+function stripInlineColors(html) {
+  // إزالة كل color:... (inline) — يترك getPDFCSS يتحكم بالكامل
+  return String(html)
+    .replace(/color\s*:\s*[^;"']+/gi, '')
+    .replace(/style\s*=\s*"\s*"/g, '');
+}
+
 function exportPDF(reportHTML) {
   const w = window.open('', '_blank', 'width=900,height=700');
   if (!w) {
@@ -227,7 +234,7 @@ function exportPDF(reportHTML) {
     + '<p>واتساب: <span class="rpt-contact">+967 774 616 896</span> | إب، اليمن</p>'
     + '<p class="rpt-date">' + stamp + '</p>'
     + '</header>'
-    + '<div class="rpt-body">' + reportHTML + '</div>'
+    + '<div class="rpt-body">' + stripInlineColors(reportHTML) + '</div>'
     + '<footer class="rpt-footer">تقرير تقديري — راجع مهندسًا مؤهلًا قبل التنفيذ</footer>'
     + '</body></html>';
   w.document.open();
@@ -344,7 +351,25 @@ function getPDFCSS() {
     '.sc-row .val{direction:ltr;unicode-bidi:isolate;font-weight:700}',
     '.sc-warn{background:#fff8e0;border:1px solid #d4a017;padding:12px;border-radius:8px;color:#7a4a00}',
     '.sc-ok{background:#e8f8ee;border:1px solid #1a8f3e;padding:12px;border-radius:8px;color:#0a4a20}',
-    '.rpt-footer{margin-top:30px;padding-top:14px;border-top:2px solid #b89545;text-align:center;color:#666;font-size:11px}'
+    '.rpt-footer{margin-top:30px;padding-top:14px;border-top:2px solid #b89545;text-align:center;color:#666;font-size:11px}',
+    /* v3.9 — إصلاحات PDF: قوائم · small · strong · inline colors */
+    'small, .sc-small{color:#555 !important;font-size:11px !important;display:block;margin:4px 0}',
+    'ul, ol{padding-right:22px !important;margin:6px 0 !important;list-style:disc outside !important;display:block}',
+    'li{color:#333 !important;font-size:12px !important;line-height:1.6;display:list-item !important;list-style:disc !important}',
+    'strong, b{color:#1a1a1a !important;font-weight:700}',
+    'em, i{color:#444 !important}',
+    'p{color:#333 !important;margin:6px 0}',
+    '.sc-row .lbl{color:#666 !important}',
+    '.sc-row .val{color:#1a1a1a !important}',
+    '.sc-card h4{color:#8d681e !important}',
+    'h1,h2,h3,h4,h5{color:#1a1a1a !important}',
+    /* إزالة inline color الفاتحة */
+    '[style*="color:#b6b8bb"], [style*="color: #b6b8bb"]{color:#555 !important}',
+    '[style*="color:#b9b8b2"], [style*="color: #b9b8b2"]{color:#555 !important}',
+    '[style*="color:#e8d9a8"], [style*="color: #e8d9a8"]{color:#8d681e !important}',
+    '[style*="color:#c49b40"], [style*="color: #c49b40"]{color:#8d681e !important}',
+    '[style*="color:#fde68a"], [style*="color: #fde68a"]{color:#7a4a00 !important}',
+    '[style*="color:#a7f3d0"], [style*="color: #a7f3d0"]{color:#0a4a20 !important}'
   ].join('\n');
 }
 

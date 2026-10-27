@@ -34,3 +34,6 @@ test-ocr.js
 test-real-label.js
 verify-before.js
 solar-v3.readable.js
+*.backup-*
+logs/
+v3105.sh
