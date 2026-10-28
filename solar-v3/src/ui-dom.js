@@ -165,9 +165,6 @@ function readInputs() {
     phasesChoice: s('sc3-phases') || 'auto',
     panelW: v('sc3-panelW') || 550,
     batteryUnitAh: batteryUnitAh,
-    rModule: v('sc3-rModule') || 8,
-    minTemp: v('sc3-minTemp') || 0,
-    rcdType: s('sc3-rcdType') || 'AC',
     pvCableLength: v('sc3-lPv') || 15,
     batteryCableLength: v('sc3-lBat') || 2,
     acCableLength: v('sc3-lAc') || 15
@@ -206,8 +203,7 @@ function saveInputs() {
       'sc3-lPv', 'sc3-lBat', 'sc3-lAc',
       'sc3-clampAmps', 'sc3-clampAvgPct', 'sc3-clampHours',
       'sc3-dailyKWh', 'sc3-peakFactor',
-      'sc3-batteryUnitAh', 'sc3-customBatteryAh',
-      'sc3-rModule', 'sc3-minTemp', 'sc3-rcdType'
+      'sc3-batteryUnitAh', 'sc3-customBatteryAh'
     ];
     const data = {};
     ids.forEach(id => {
@@ -320,13 +316,6 @@ function buildHTML() {
     + '<option value="custom">مخصص...</option>'
     + '</select></div>'
     + '<div class="sc-field" id="sc3-customAh-field" style="display:none"><label>سعة مخصصة (Ah)</label><input id="sc3-customBatteryAh" type="number" value="100" min="50" max="500"></div>'
-    + '<div class="sc-field"><label>مقاومة البطارية (mΩ)</label><input id="sc3-rModule" type="number" value="8" min="1" max="30" step="0.5"></div>'
-    + '<div class="sc-field"><label>أدنى حرارة (°C)</label><input id="sc3-minTemp" type="number" value="0" min="-20" max="30" step="1"></div>'
-    + '<div class="sc-field"><label>نوع RCD</label><select id="sc3-rcdType">'
-    + '<option value="AC" selected>AC (قديم)</option>'
-    + '<option value="A">A (حديث)</option>'
-    + '<option value="B">B (شواحن)</option>'
-    + '</select></div>'
     + '</div>'
     + '</fieldset>'
 
