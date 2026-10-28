@@ -37,7 +37,16 @@ function initUI(deps) {
   const reportEl = document.getElementById('sc3-report');
 
   /* ═══ تبديل حقول الإدخال حسب الطريقة ═══ */ 
-  const methodSelect = document.getElementById("sc3-method"); 
+    /* ═══ سعة الوحدة — إظهار/إخفاء المخصص ═══ */
+  const batteryUnitSel = document.getElementById('sc3-batteryUnitAh');
+  if (batteryUnitSel) {
+    batteryUnitSel.addEventListener('change', function() {
+      const cf = document.getElementById('sc3-customAh-field');
+      if (cf) cf.style.display = this.value === 'custom' ? '' : 'none';
+    });
+  }
+
+const methodSelect = document.getElementById("sc3-method"); 
   if (methodSelect) { 
     methodSelect.addEventListener("change", function() { 
       const m = this.value; 
@@ -140,6 +149,14 @@ function readInputs() {
 
   const method = s('sc3-method');
 
+  const unitSelect = s('sc3-batteryUnitAh');
+  let batteryUnitAh = 100;
+  if (unitSelect === 'custom') {
+    batteryUnitAh = v('sc3-customBatteryAh') || 100;
+  } else if (unitSelect) {
+    batteryUnitAh = parseFloat(unitSelect) || 100;
+  }
+
   const inputs = {
     method: method,
     hsp: v('sc3-hsp') || 5.5,
@@ -147,6 +164,7 @@ function readInputs() {
     modeChoice: s('sc3-mode') || 'auto',
     phasesChoice: s('sc3-phases') || 'auto',
     panelW: v('sc3-panelW') || 550,
+    batteryUnitAh: batteryUnitAh,
     pvCableLength: v('sc3-lPv') || 15,
     batteryCableLength: v('sc3-lBat') || 2,
     acCableLength: v('sc3-lAc') || 15
@@ -184,7 +202,8 @@ function saveInputs() {
       'sc3-method', 'sc3-hsp', 'sc3-autonomy', 'sc3-mode', 'sc3-phases', 'sc3-panelW',
       'sc3-lPv', 'sc3-lBat', 'sc3-lAc',
       'sc3-clampAmps', 'sc3-clampAvgPct', 'sc3-clampHours',
-      'sc3-dailyKWh', 'sc3-peakFactor'
+      'sc3-dailyKWh', 'sc3-peakFactor',
+      'sc3-batteryUnitAh', 'sc3-customBatteryAh'
     ];
     const data = {};
     ids.forEach(id => {
@@ -288,6 +307,15 @@ function buildHTML() {
     + '<option value="3">ثلاثي (3φ — 400V)</option>'
     + '</select></div>'
     + '<div class="sc-field"><label>قدرة اللوح (W)</label><input id="sc3-panelW" type="number" value="550"></div>'
+    + '<div class="sc-field"><label>سعة الوحدة (Ah)</label><select id="sc3-batteryUnitAh">'
+    + '<option value="74">74 Ah · 3.55 kWh</option>'
+    + '<option value="100" selected>100 Ah · 4.8 kWh</option>'
+    + '<option value="200">200 Ah · 9.6 kWh</option>'
+    + '<option value="280">280 Ah · 13.44 kWh</option>'
+    + '<option value="300">300 Ah · 14.4 kWh</option>'
+    + '<option value="custom">مخصص...</option>'
+    + '</select></div>'
+    + '<div class="sc-field" id="sc3-customAh-field" style="display:none"><label>سعة مخصصة (Ah)</label><input id="sc3-customBatteryAh" type="number" value="100" min="50" max="500"></div>'
     + '</div>'
     + '</fieldset>'
 

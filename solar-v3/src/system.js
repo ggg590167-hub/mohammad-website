@@ -348,7 +348,7 @@ function sizePVArray(dailyWh, hsp, invEff, userPanelW) {
 }
 
 /* ═══ 5. حساب بنك البطاريات ═══ */
-function sizeBattery(dailyWh, mode, autDays, dod) {
+function sizeBattery(dailyWh, mode, autDays, dod, unitAhOverride) {
   autDays = autDays || 1;
   dod = dod || 0.8;   // LiFePO4
 
@@ -359,7 +359,7 @@ function sizeBattery(dailyWh, mode, autDays, dod) {
     // 48V LiFePO4
     const voltage = SYSTEM_CONFIG.LV_VOLTAGE;
     const capacityAh = P.batteryCapacityAh(eBatRequired, voltage);
-    const unitAh = SYSTEM_CONFIG.BAT_UNIT_LV_AH;
+    const unitAh = unitAhOverride || SYSTEM_CONFIG.BAT_UNIT_LV_AH;
     const nUnits = P.batteriesCount(capacityAh, unitAh);
     const actualAh = nUnits * unitAh;
     const actualWh = actualAh * voltage;
@@ -513,7 +513,7 @@ function analyzeSystem(input) {
   });
 
   // ═══ 5. البطاريات ═══
-  const battery = sizeBattery(load.dailyWh, mode, autDays, dod);
+  const battery = sizeBattery(load.dailyWh, mode, autDays, dod, input.batteryUnitAh);
 
   // ═══ 6. تيار البطارية ═══
   const iBat = batteryCurrent(inverter.stdW, battery.voltage, SYSTEM_CONFIG.INV_EFF);

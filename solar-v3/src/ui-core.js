@@ -95,7 +95,7 @@ function buildReport(systemResult, validationResult, meta) {
   const c3 = [];
   if (s.battery.mode === 'LV') {
     c3.push(row('السعة المطلوبة', fmtInt(s.battery.requiredAh) + ' Ah'));
-    c3.push(row('عدد الوحدات', s.battery.units + ' × ' + s.battery.unitAh + ' Ah'));
+    c3.push(row('عدد الوحدات', s.battery.units + ' × ' + s.battery.unitAh + ' Ah (' + fmt((s.battery.unitAh * s.battery.voltage) / 1000, 2) + ' kWh)'));
     c3.push(row('السعة الفعلية', fmtInt(s.battery.actualAh) + ' Ah'));
     c3.push(row('الطاقة الفعلية', fmtInt(s.battery.actualWh) + ' Wh (' + fmt(s.battery.actualWh/1000, 2) + ' kWh)'));
   } else {
