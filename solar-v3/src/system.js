@@ -302,7 +302,7 @@ function phaseWarnings(mode, peakW, inverterW, phases, userChoice) {
 }
 
 /* ═══ 4. حساب مصفوفة الألواح ═══ */
-function sizePVArray(dailyWh, hsp, invEff, userPanelW) {
+function sizePVArray(dailyWh, hsp, invEff, userPanelW, minTempOverride) {
   // PR (Performance Ratio)
   const pr = P.performanceRatio(
     SYSTEM_CONFIG.CC_EFF,
@@ -330,7 +330,8 @@ function sizePVArray(dailyWh, hsp, invEff, userPanelW) {
   // ═══ Voc عند STC وعند أدنى حرارة ═══
   const panelVoc = SYSTEM_CONFIG.DEFAULT_PANEL_VOC;
   const vocSTC = panelVoc * panelsPerString;
-  const vocCold = P.vocAtTemperature(vocSTC, SYSTEM_CONFIG.MIN_TEMP_C);
+  const minT = minTempOverride != null ? minTempOverride : SYSTEM_CONFIG.MIN_TEMP_C;
+  const vocCold = P.vocAtTemperature(vocSTC, minT);
 
   return {
     requiredW: pvPowerW,
@@ -467,6 +468,12 @@ function acCurrent(inverterW, phases, acVoltage, pf) {
 
 /* ═══ 9. التحليل الكامل للنظام ═══ */
 function analyzeSystem(input) {
+  // ═══ config نسخة (لأن SYSTEM_CONFIG مجمد) ═══
+  const config = { ...SYSTEM_CONFIG };
+  if (input.rModule != null) config.BATTERY_R_MODULE_MOHM = input.rModule;
+  if (input.minTemp != null) config.MIN_TEMP_C = input.minTemp;
+  if (input.rcdType) config.RCD_TYPE = input.rcdType;
+
   // ═══ المدخلات ═══
   const hsp = input.hsp || 5.5;
   const autDays = input.autonomyDays || 1;
@@ -489,7 +496,7 @@ function analyzeSystem(input) {
   const inverter = sizeInverter(load.peakW, load.dailyWh, mode, invPhase);
 
   // ═══ 4. مصفوفة الألواح ═══
-  const pv = sizePVArray(load.dailyWh, hsp, SYSTEM_CONFIG.INV_EFF, userPanelW);
+  const pv = sizePVArray(load.dailyWh, hsp, config.INV_EFF, userPanelW, config.MIN_TEMP_C);
 
   // ═══ 4.b. كابل الألواح ═══
   /* توزيع الألواح على السلاسل بالتساوي (يطابق diagram.js) */
@@ -586,7 +593,7 @@ function analyzeSystem(input) {
       totalCurrent: iPv,
       note: 'متطلب تصميمي إرشادي — راجع ورقة بيانات الإنفرتر المختار'
     },
-    config: SYSTEM_CONFIG
+    config: config
   };
 }
 
