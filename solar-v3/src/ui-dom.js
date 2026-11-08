@@ -229,10 +229,12 @@ function restoreInputs() {
 
 /* ═══ تصدير PDF ═══ */
 function stripInlineColors(html) {
-  // إزالة كل color:... (inline) — يترك getPDFCSS يتحكم بالكامل
+  // إزالة color و background من inline — يترك getPDFCSS يتحكم بالكامل
   return String(html)
-    .replace(/color\s*:\s*[^;"']+/gi, '')
-    .replace(/style\s*=\s*"\s*"/g, '');
+    .replace(/background(-color)?\s*:\s*[^;"']+;?/gi, '')
+    .replace(/(^|["'\s;])\s*color\s*:\s*[^;"']+;?/gi, '$1')
+    .replace(/;;+/g, ';')
+    .replace(/style\s*=\s*"\s*;?\s*"/g, '');
 }
 
 function exportPDF(reportHTML) {
