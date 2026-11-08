@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>المرجع الهندسي — حاسبة الأسد للطاقة الشمسية</title>
+<style>
+  @media print {
+    @page { size: A4; margin: 15mm; }
+    body { font-size: 11pt; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #f5f5f5; color: #1a1a1a; line-height: 1.7; margin: 0 auto; padding: 20px; max-width: 1100px; }
+  .cover { background: linear-gradient(135deg, #1a1a1a 0%, #2a2515 100%); color: #d4af37; padding: 60px 40px; border-radius: 15px; text-align: center; margin-bottom: 30px; page-break-after: always; }
+  .cover h1 { font-size: 2.2em; margin: 0 0 15px; }
+  .cover h2 { font-size: 1.3em; margin: 10px 0; color: #f0e5b8; font-weight: 400; }
+  .cover .meta { margin-top: 40px; font-size: 0.95em; color: #b8a97a; }
+  h1 { color: #1a1a1a; border-bottom: 3px solid #d4af37; padding-bottom: 10px; }
+  h2 { color: #8d681e; margin-top: 30px; border-right: 4px solid #d4af37; padding-right: 12px; }
+  h3 { color: #1a1a1a; margin-top: 20px; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9em; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  th { background: #1a1a1a; color: #d4af37; padding: 10px 8px; text-align: right; font-weight: 600; }
+  td { padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: right; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+  tr:hover td { background: #fff8e0; }
+  .formula { background: #0a0a0a; color: #d4af37; padding: 12px 15px; border-radius: 8px; font-family: 'Courier New', monospace; direction: ltr; text-align: center; margin: 10px 0; font-size: 1em; overflow-x: auto; }
+  .example { background: #fff8e0; border-right: 4px solid #b89545; padding: 12px 15px; border-radius: 6px; margin: 10px 0; }
+  .example strong { color: #8d681e; }
+  .warning { background: #fee2e2; border-right: 4px solid #dc2626; padding: 12px 15px; border-radius: 6px; margin: 10px 0; }
+  .ok { background: #d1fae5; border-right: 4px solid #059669; padding: 12px 15px; border-radius: 6px; margin: 10px 0; }
+  .note { background: #dbeafe; border-right: 4px solid #2563eb; padding: 12px 15px; border-radius: 6px; margin: 10px 0; font-size: 0.9em; }
+  .card-header { background: linear-gradient(90deg, #1a1a1a, #2a2515); color: #d4af37; padding: 12px 20px; border-radius: 10px 10px 0 0; font-size: 1.2em; font-weight: 700; margin-top: 25px; }
+  .card-body { background: white; padding: 20px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8em; font-weight: 600; margin: 2px; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .toc { background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 30px; }
+  .toc ol { line-height: 2; }
+  .toc a { color: #8d681e; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .print-btn { position: fixed; bottom: 30px; left: 30px; background: #d4af37; color: #1a1a1a; padding: 15px 25px; border: none; border-radius: 50px; font-size: 1.1em; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 999; }
+  .print-btn:hover { background: #f0e5b8; transform: translateY(-2px); }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: #c0392b; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+
+<div class="cover">
+  <h1>📐 المرجع الهندسي الشامل</h1>
+  <h2>حاسبة الأسد للطاقة الشمسية — v3.10.4</h2>
+  <h2>9 بطاقات · 20+ معادلة · 13 معيار IEC/NREL</h2>
+  <div class="meta">
+    <p><strong>م/ محمد الأسد</strong> — Al-Asad Engineering</p>
+    <p>الهندسة والطاقة · إب — الجمهورية اليمنية</p>
+    <p>+967 774 616 896 · alasadm293@gmail.com</p>
+    <p>الإصدار: v3.10.4 · نوفمبر 2026</p>
+  </div>
+</div>
+
+<div class="toc">
+  <h2>📑 فهرس المحتويات</h2>
+  <ol>
+    <li><a href="#card1">البطاقة 1 — المعطيات الشاملة (تحليل الأحمال)</a></li>
+    <li><a href="#card2">البطاقة 2 — مصفوفة الألواح (PV Sizing)</a></li>
+    <li><a href="#card3">البطاقة 3 — بنك البطاريات (Battery Sizing)</a></li>
+    <li><a href="#card4">البطاقة 4 — الإنفرتر (Inverter Selection)</a></li>
+    <li><a href="#card4b">البطاقة 4.b — متطلبات الإنفرتر (Compatibility)</a></li>
+    <li><a href="#card5">البطاقة 5 — التيارات (Currents & C-rate)</a></li>
+    <li><a href="#card6">البطاقة 6 — كابل البطارية (Battery Cable)</a></li>
+    <li><a href="#card6b">البطاقة 6.b — كابل الألواح (PV Cable)</a></li>
+    <li><a href="#card7">البطاقة 7 — كابل AC (AC Cable + RCD)</a></li>
+    <li><a href="#card8">البطاقة 8 — التحقق النهائي (14 Checks)</a></li>
+    <li><a href="#card9">البطاقة 9 — Inrush + BMS (Manual Verification)</a></li>
+    <li><a href="#flow">خريطة التدفق الفيزيائي</a></li>
+    <li><a href="#ratios">جدول الإشارات الحرجة (11 نسبة)</a></li>
+    <li><a href="#standards">المعايير المرجعية (13 معيار)</a></li>
+  </ol>
+</div>
+
+<div id="card1" class="page-break">
+  <div class="card-header">📊 البطاقة 1 — المعطيات الشاملة (تحليل الأحمال)</div>
+  <div class="card-body">
+    <h3>🎯 الغرض الهندسي</h3>
+    <p>تحويل قراءات المستخدم (Clamp / kWh / جدول أجهزة) إلى <strong>طاقة يومية</strong> و<strong>حمل ذروة</strong> — أساس كل حسابات النظام.</p>
+    <h3>📐 المعادلات الفيزيائية</h3>
+    <h4>1. طريقة Clamp</h4>
+    <div class="formula">P_peak = I_clamp × V × PF</div>
+    <div class="formula">P_avg = P_peak × (avg% / 100)</div>
+    <div class="formula">E_daily = P_avg × hours × 1000 [Wh]</div>
+    <div class="example">
+      <strong>مثال:</strong> I=20A · V=230V · PF=0.9 · avg=40% · hours=10
+      <br>P_peak = 20 × 230 × 0.9 = <strong>4,140 W</strong>
+      <br>P_avg = 4,140 × 0.40 = <strong>1,656 W</strong>
+      <br>E_daily = 1,656 × 10 = <strong>16,560 Wh</strong>
+    </div>
+    <h4>2. طريقة الاستهلاك اليومي</h4>
+    <div class="formula">E_daily = kWh × 1000 [Wh]</div>
+    <div class="formula">P_avg = E_daily / 24 [W]</div>
+    <div class="formula">P_peak = P_avg × peakFactor</div>
+    <h3>🔧 قرارات النظام</h3>
+    <table>
+      <tr><th>القرار</th><th>الشرط</th><th>المعيار</th></tr>
+      <tr><td><span class="badge badge-green">LV (48V)</span></td><td>P_peak &lt; 30 kW · E &lt; 40 kWh</td><td>IEC 60364</td></tr>
+      <tr><td><span class="badge badge-blue">HV (400V)</span></td><td>P_peak ≥ 30 kW · E ≥ 40 kWh</td><td>IEC 60364</td></tr>
+      <tr><td><span class="badge badge-green">1φ (230V)</span></td><td>P_peak &lt; 5 kW</td><td>G98</td></tr>
+      <tr><td><span class="badge badge-blue">3φ (400V)</span></td><td>P_peak ≥ 10 kW</td><td>IEC 60364</td></tr>
+    </table>
+    <div class="note"><strong>معامل القدرة (PF):</strong> 0.9 افتراضي — للأحمال المنزلية. للأحمال الحثية: 0.85. للمقاومية: 1.0.</div>
+  </div>
+</div>
+
+<div id="card2" class="page-break">
+  <div class="card-header">🔆 البطاقة 2 — مصفوفة الألواح (PV Sizing)</div>
+  <div class="card-body">
+    <h3>🎯 الغرض الهندسي</h3>
+    <p>تحديد <strong>عدد الألواح</strong> و<strong>قدرة المصفوفة</strong> لتغطية الاستهلاك اليومي — مع مراعاة الفواقد الفيزيائية.</p>
+    <h3>📐 المعادلات</h3>
+    <h4>1. سلسلة الطاقة</h4>
+    <div class="formula">E_load → ÷(η_inv × PR) → E_pv → ÷HSP → P_pv → ÷P_panel → N_panels</div>
+    <h4>2. معامل الأداء PR</h4>
+    <div class="formula">PR = η_cc × η_soil × η_temp × η_wire</div>
+    <div class="formula">PR = 0.97 × 0.94 × 0.85 × 0.96 = <strong>0.744</strong></div>
+    <table>
+      <tr><th>المعامل</th><th>القيمة</th><th>المصدر</th></tr>
+      <tr><td>η_cc</td><td>0.97</td><td>ورقة MPPT</td></tr>
+      <tr><td>η_soil</td><td>0.94</td><td>NREL</td></tr>
+      <tr><td>η_temp</td><td>0.85</td><td>IEC 61215 (45°C)</td></tr>
+      <tr><td>η_wire</td><td>0.96</td><td>حسابي</td></tr>
+    </table>
+    <h4>3. الحساب</h4>
+    <div class="formula">P_pv_required = E_daily / (η_inv × PR × HSP)</div>
+    <div class="formula">N_panels = ceil(P_pv_required / P_panel)</div>
+    <div class="example">
+      <strong>مثال:</strong> E=16,560 Wh · HSP=5.5 · P_panel=550W
+      <br>P_req = 16,560 / (0.92 × 0.744 × 5.5) = <strong>4,399 W</strong>
+      <br>N = ceil(4,399 / 550) = <strong>8 ألواح</strong>
+      <br>P_actual = 8 × 550 = <strong>4,400 W</strong>
+      <br>هامش = (4,400−4,399)/4,399 = <strong>0.02%</strong> ⚠️ ضيق (الموصى ≥10%)
+    </div>
+    <div class="warning"><strong>⚠️ تحذير:</strong> هامش الألواح 0.02% — أقل من 10%. الحل: إضافة لوح واحد (هامش 12.5%).</div>
+  </div>
+</div>
+
+<div id="card3" class="page-break">
+  <div class="card-header">🔋 البطاقة 3 — بنك البطاريات (Battery Sizing)</div>
+  <div class="card-body">
+    <h3>🎯 الغرض الهندسي</h3>
+    <p>تحديد <strong>سعة البطارية</strong> و<strong>عدد الوحدات</strong> — مع مراعاة DoD والكفاءة.</p>
+    <h3>📐 المعادلات</h3>
+    <div class="formula">E_bat = E_daily / (η_inv × DoD)</div>
+    <div class="formula">Ah_req = E_bat / V_bat</div>
+    <div class="formula">N_units = ceil(Ah_req / unitAh)</div>
+    <div class="formula">E_usable = E_nominal × DoD</div>
+    <div class="formula">E_AC = E_usable × η_inv</div>
+    <div class="example">
+      <strong>مثال:</strong> E=16,560 Wh · DoD=80% · V=48V · unitAh=100
+      <br>E_bat = 16,560 / (0.92 × 0.80) = <strong>22,500 Wh</strong>
+      <br>Ah_req = 22,500 / 48 = <strong>468.75 Ah</strong>
+      <br>N = ceil(468.75 / 100) = <strong>5 وحدات</strong>
+      <br>E_nominal = 5 × 100 × 48 = <strong>24,000 Wh</strong>
+      <br>E_usable = 24,000 × 0.80 = <strong>19,200 Wh</strong>
+      <br>E_AC = 19,200 × 0.92 = <strong>17,664 Wh</strong>
+    </div>
+    <h3>📊 الفرق بين الطاقات</h3>
+    <table>
+      <tr><th>الطاقة</th><th>المعادلة</th><th>القيمة</th></tr>
+      <tr><td>E_nominal</td><td>N × Ah × V</td><td><strong>24,000 Wh</strong></td></tr>
+      <tr><td>E_usable</td><td>E_nominal × DoD</td><td><strong>19,200 Wh</strong></td></tr>
+      <tr><td>E_AC</td><td>E_usable × η_inv</td><td><strong>17,664 Wh</strong></td></tr>
+    </table>
+    <div class="warning"><strong>⚠️ فقدان 26.4%:</strong> 24,000 → 17,664 = فقدان 6,336 Wh. المستخدم يظن 24 kWh — الحقيقة 17.66 kWh.</div>
+  </div>
+</div>
+
+<div id="card4" class="page-break">
+  <div class="card-header">⚡ البطاقة 4 — الإنفرتر (Inverter Selection)</div>
+  <div class="card-body">
+    <h3>📐 المعادلات</h3>
+    <div class="formula">P_cont = P_peak × 1.25</div>
+    <div class="formula">P_std = أقرب مقاس قياسي ≥ P_cont</div>
+    <div class="formula">P_surge = 2 × P_std</div>
+    <div class="example">
+      <strong>مثال:</strong> P_peak=4,140 W
+      <br>P_cont = 4,140 × 1.25 = <strong>5,175 W</strong>
+      <br>P_std = <strong>6,000 W</strong>
+      <br>P_surge = 2 × 6,000 = <strong>12,000 W</strong>
+    </div>
+    <table>
+      <tr><th>المقاس</th><th>الاستخدام</th><th>الوضع</th></tr>
+      <tr><td>1-3 kW</td><td>بيت صغير</td><td>LV 1φ</td></tr>
+      <tr><td>4-6 kW</td><td>بيت متوسط</td><td>LV 1φ</td></tr>
+      <tr><td>8-12 kW</td><td>بيت كبير</td><td>LV 1φ/3φ</td></tr>
+      <tr><td>30-50 kW</td><td>مشروع</td><td>HV 3φ</td></tr>
+    </table>
+  </div>
+</div>
+
+<div id="card4b" class="page-break">
+  <div class="card-header">⚡ البطاقة 4.b — متطلبات الإنفرتر (Compatibility)</div>
+  <div class="card-body">
+    <h3>📐 المعادلات</h3>
+    <div class="formula">Voc_cold = Voc_STC × [1 + β × (T_min − 25)]</div>
+    <div class="formula">β = -0.003/°C · T_min = 0°C (افتراضي)</div>
+    <div class="formula">V_string = N_panels × Vmp</div>
+    <div class="formula">هامش = (MPPT_max − Voc_cold) / MPPT_max × 100</div>
+    <div class="example">
+      <strong>مثال:</strong> 8 ألواح × 49.7V · β=-0.003 · T=0°C · MPPT_max=500V
+      <br>Voc_cold = 8 × 49.7 × 1.075 = <strong>427 V</strong>
+      <br>V_string = 8 × 42 = <strong>336 V</strong>
+      <br>هامش = (500−427)/500 = <strong>14.5%</strong> <span class="badge badge-green">✅ ≥10%</span>
+    </div>
+    <h3>⚠️ شروط التوافق (IEC 62548)</h3>
+    <table>
+      <tr><th>الشرط</th><th>الحد</th><th>المثال</th></tr>
+      <tr><td>Voc_cold ≤ MPPT_max × 0.95</td><td>475V</td><td>427V ✅</td></tr>
+      <tr><td>Vmp داخل نطاق MPPT</td><td>150-500V</td><td>336V ✅</td></tr>
+    </table>
+  </div>
+</div>
+
+<div id="card5" class="page-break">
+  <div class="card-header">🔌 البطاقة 5 — التيارات (Currents & C-rate)</div>
+  <div class="card-body">
+    <h3>📐 المعادلات</h3>
+    <div class="formula">I_bat = P_inv / (V_bat × η_inv)</div>
+    <div class="formula">I_ac = P / (V × PF)</div>
+    <div class="formula">C-rate = I_bat / Capacity</div>
+    <div class="example">
+      <strong>مثال:</strong> P_inv=6,000W · V_bat=48V · η=0.92 · Capacity=500Ah
+      <br>I_bat = 6,000 / (48 × 0.92) = <strong>135.9 A</strong>
+      <br>I_ac = 6,000 / (230 × 0.9) = <strong>29.0 A</strong>
+      <br>C-rate = 135.9 / 500 = <strong>0.27C</strong> ✅
+    </div>
+    <h3>🔋 حدود C-rate</h3>
+    <table>
+      <tr><th>النوع</th><th>مستمر</th><th>ذروة (10s)</th></tr>
+      <tr><td>LiFePO₄ عادي</td><td>1C</td><td>2C</td></tr>
+      <tr><td>LiFePO₄ عالي</td><td>2C</td><td>3C</td></tr>
+      <tr><td>LTO</td><td>10C</td><td>20C</td></tr>
+    </table>
+  </div>
+</div>
+
+<div id="card6" class="page-break">
+  <div class="card-header">🔋 البطاقة 6 — كابل البطارية (Battery Cable)</div>
+  <div class="card-body">
+    <h3>📐 الشروط الثلاثة</h3>
+    <div class="formula">I_load ≤ In ≤ Iz_actual</div>
+    <div class="formula">Iz_actual = Iz_table × k_temp × k_group</div>
+    <div class="formula">ΔV = 2 × L × I × ρ / A ≤ 1%</div>
+    <div class="formula">Isc = V_bat / (R_module / N_units) ≤ Icn</div>
+    <div class="example">
+      <strong>مثال:</strong> I=135.9A · L=2m · V=48V · R=8mΩ · N=5
+      <br><strong>1) التنسيق:</strong> 135.9 ≤ 160 ≤ 201.8 ✅
+      <br><strong>2) هبوط الجهد:</strong> ΔV = 0.132V → 0.27% ✅
+      <br><strong>3) Isc:</strong> 48/(0.008/5) = 30 kA ⚠️ &gt; 6 kA
+    </div>
+    <h3>⚠️ تصنيف Isc</h3>
+    <table>
+      <tr><th>Isc</th><th>التصنيف</th><th>الحماية</th></tr>
+      <tr><td>&lt; 20 kA</td><td><span class="badge badge-green">منخفض</span></td><td>Class T 100A</td></tr>
+      <tr><td>20-50 kA</td><td><span class="badge badge-yellow">متوسط</span></td><td>Class T 200A</td></tr>
+      <tr><td>&gt; 50 kA</td><td><span class="badge badge-red">حرج</span></td><td>Class T فردي + رئيسي</td></tr>
+    </table>
+  </div>
+</div>
+
+<div id="card6b" class="page-break">
+  <div class="card-header">☀️ البطاقة 6.b — كابل الألواح (PV Cable)</div>
+  <div class="card-body">
+    <h3>📐 المعادلات</h3>
+    <div class="formula">I_string = P_panel / Vmp = 550 / 42 = 13.1 A</div>
+    <div class="formula">ΔV% = ΔV / V_string × 100 ≤ 2%</div>
+    <div class="example">
+      <strong>مثال:</strong> L=15m · I=13.1A · V=336V · A=4mm²
+      <br>ΔV = 2×15×13.1×0.017/4 = 1.67V
+      <br>ΔV% = 1.67/336 × 100 = <strong>0.57%</strong> ✅ ≤2%
+    </div>
+    <table>
+      <tr><th>البُعد</th><th>بطارية</th><th>ألواح</th></tr>
+      <tr><td>حد ΔV</td><td>1%</td><td>2%</td></tr>
+      <tr><td>الجهد</td><td>48V</td><td>336V</td></tr>
+      <tr><td>Isc</td><td>يُفحص</td><td>لا يُفحص</td></tr>
+    </table>
+  </div>
+</div>
+
+<div id="card7" class="page-break">
+  <div class="card-header">⚡ البطاقة 7 — كابل AC + RCD</div>
+  <div class="card-body">
+    <h3>📐 المعادلات</h3>
+    <div class="formula">I_ac = P / (V × PF) = 29.0 A</div>
+    <div class="formula">ΔV% = 1.24% ≤ 3%</div>
+    <h3>🛡️ RCD (IEC 60364-4-41)</h3>
+    <table>
+      <tr><th>النوع</th><th>يكشف</th><th>متى يُستخدم</th></tr>
+      <tr><td>AC</td><td>تسرب متناوب فقط</td><td>إنفرتر قديم</td></tr>
+      <tr><td>A</td><td>متناوب + نبضي DC</td><td>إنفرتر حديث</td></tr>
+      <tr><td>B</td><td>متناوب + DC كامل</td><td>شواحن EV · PV</td></tr>
+    </table>
+    <div class="note"><strong>30 mA:</strong> حماية أشخاص. <strong>100-300 mA:</strong> حماية أصول.</div>
+  </div>
+</div>
+
+<div id="card8" class="page-break">
+  <div class="card-header">🛡️ البطاقة 8 — التحقق النهائي (14 Checks)</div>
+  <div class="card-body">
+    <table>
+      <tr><th>#</th><th>الفحص</th><th>المعادلة</th><th>الحد</th></tr>
+      <tr><td>1</td><td>تنسيق كابل البطارية</td><td>I ≤ In ≤ Iz</td><td>—</td></tr>
+      <tr><td>2</td><td>تنسيق كابل AC</td><td>I ≤ In ≤ Iz</td><td>—</td></tr>
+      <tr><td>3</td><td>تنسيق كابل الألواح</td><td>I ≤ In ≤ Iz</td><td>—</td></tr>
+      <tr><td>4</td><td>هبوط جهد البطارية</td><td>ΔV%</td><td>≤ 1%</td></tr>
+      <tr><td>5</td><td>هبوط جهد الألواح</td><td>ΔV%</td><td>≤ 2%</td></tr>
+      <tr><td>6</td><td>هبوط جهد AC</td><td>ΔV%</td><td>≤ 3%</td></tr>
+      <tr><td>7</td><td>كفاية الإنفرتر</td><td>P ≥ P_peak×1.25</td><td>—</td></tr>
+      <tr><td>8</td><td>كفاية البطارية</td><td>Ah ≥ E/(V×DoD×η)</td><td>—</td></tr>
+      <tr><td>9</td><td>كفاية الألواح</td><td>P ≥ E/(HSP×PR)</td><td>—</td></tr>
+      <tr><td>10</td><td>Voc بارد</td><td>Voc_cold ≤ MPPT×0.95</td><td>—</td></tr>
+      <tr><td>11</td><td>تحذير MPPT</td><td>I_array ≤ MPPT_I</td><td>—</td></tr>
+      <tr><td>12</td><td>RCD</td><td>30 mA</td><td>—</td></tr>
+      <tr><td>13</td><td>تأريض</td><td>≤ 10Ω</td><td>—</td></tr>
+      <tr><td>14</td><td>Isc</td><td>Isc ≤ Icn</td><td>—</td></tr>
+    </table>
+    <h3>🎯 3 مستويات</h3>
+    <div class="ok">✅ <strong>14/14 فحصاً حسابياً اجتاز</strong></div>
+    <div class="warning">⚠️ <strong>تحقق يدوي:</strong> BMS · Inrush · التأريض</div>
+    <div class="warning">🔴 <strong>تحذير حرج:</strong> Isc 30 kA &gt; 6 kA → Class T</div>
+  </div>
+</div>
+
+<div id="card9" class="page-break">
+  <div class="card-header">📋 البطاقة 9 — Inrush + BMS</div>
+  <div class="card-body">
+    <h3>📐 4 تيارات التقديرية</h3>
+    <div class="formula">iChargeMax = (P_pv × η_cc) / V_bat</div>
+    <div class="formula">iChargeReal = (P_pv × PR) / V_bat</div>
+    <div class="formula">iPv = P_pv / V_string</div>
+    <div class="formula">iBat = P_inv / (V_bat × η_inv)</div>
+    <div class="example">
+      <strong>مثال:</strong> P_pv=4,400W · V_bat=48V · V_string=336V
+      <br>iChargeMax = (4,400 × 0.97) / 48 = <strong>88.9 A</strong>
+      <br>iChargeReal = (4,400 × 0.744) / 48 = <strong>68.2 A</strong>
+      <br>iPv = 4,400 / 336 = <strong>13.1 A</strong>
+      <br>iBat = 6,000 / (48 × 0.92) = <strong>135.9 A</strong>
+    </div>
+    <h3>⚡ Inrush</h3>
+    <div class="formula">Inrush = Σ(P_peak × surge_factor)</div>
+    <table>
+      <tr><th>الجهاز</th><th>Surge</th></tr>
+      <tr><td>مكيف عادي</td><td>4×</td></tr>
+      <tr><td>مكيف إنفرتر</td><td>1.2×</td></tr>
+      <tr><td>ثلاجة</td><td>3×</td></tr>
+      <tr><td>مضخة</td><td>3×</td></tr>
+    </table>
+    <h3>🔋 حدود BMS</h3>
+    <table>
+      <tr><th>الطراز</th><th>شحن (A)</th><th>تفريغ (A)</th></tr>
+      <tr><td>Pylontech US3000C</td><td>37</td><td>37</td></tr>
+      <tr><td>BYD LVS</td><td>50</td><td>50</td></tr>
+      <tr><td>Pytes 48100</td><td>50</td><td>100</td></tr>
+    </table>
+    <h3>✅ قائمة التحقق</h3>
+    <ul>
+      <li>☐ Inrush كل جهاز من LRA</li>
+      <li>☐ مجموع Inrush &lt; قدرة إقلاع الإنفرتر</li>
+      <li>☐ BMS max charge ≥ iChargeMax</li>
+      <li>☐ BMS max discharge ≥ iBat</li>
+    </ul>
+  </div>
+</div>
+
+<div id="flow" class="page-break">
+  <h2>🎯 خريطة التدفق الفيزيائي</h2>
+  <div style="background: white; padding: 30px; border-radius: 12px; text-align: center;">
+    <div style="font-family: monospace; direction: ltr; text-align: center; line-height: 2.5; font-size: 1.05em;">
+      <div style="background: #dbeafe; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[1]</strong> الحمل (E_daily · P_peak)</div>
+      <div>↓</div>
+      <div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[2]</strong> PV (P_pv = E/(η×PR×HSP))</div>
+      <div>↓</div>
+      <div style="background: #d1fae5; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[3]</strong> بطارية (E_bat = E/(η×DoD))</div>
+      <div>↓</div>
+      <div style="background: #fee2e2; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[4]</strong> إنفرتر (P_std = P_peak×1.25)</div>
+      <div>↓</div>
+      <div style="background: #e9d5ff; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[5]</strong> تيارات (I_bat · I_ac · C-rate)</div>
+      <div>↓</div>
+      <div style="background: #fed7aa; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[6-7]</strong> كابلات (I ≤ In ≤ Iz · ΔV · Isc)</div>
+      <div>↓</div>
+      <div style="background: #fecaca; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[8]</strong> تحقق (14/14 + يدوي + حرج)</div>
+      <div>↓</div>
+      <div style="background: #d9f99d; padding: 12px; border-radius: 8px; margin: 8px 0;"><strong>[9]</strong> BMS + Inrush</div>
+    </div>
+  </div>
+</div>
+
+<div id="ratios" class="page-break">
+  <h2>📊 جدول الإشارات الحرجة (11 نسبة)</h2>
+  <table>
+    <tr><th>النسبة</th><th>الحد</th><th>البطاقة</th><th>الأثر</th></tr>
+    <tr><td>PR</td><td>≥ 0.70</td><td>2</td><td>ألواح غير كافية</td></tr>
+    <tr><td>هامش الألواح</td><td>≥ 10%</td><td>2 · 8</td><td>تفريغ أسرع</td></tr>
+    <tr><td>DoD</td><td>≤ 80% (LiFePO₄)</td><td>3</td><td>عمر أقصر</td></tr>
+    <tr><td>هامش الإنفرتر</td><td>≥ 25%</td><td>4</td><td>فصل عند الذروة</td></tr>
+    <tr><td>Voc_cold / MPPT_max</td><td>≤ 0.90</td><td>4.b · 8</td><td>تلف الإنفرتر</td></tr>
+    <tr><td>C-rate</td><td>≤ 1C</td><td>5</td><td>BMS يفصل</td></tr>
+    <tr><td>ΔV% (بطارية)</td><td>≤ 1%</td><td>6</td><td>سخونة</td></tr>
+    <tr><td>ΔV% (ألواح)</td><td>≤ 2%</td><td>6.b</td><td>فقدان إنتاج</td></tr>
+    <tr><td>ΔV% (AC)</td><td>≤ 3%</td><td>7</td><td>جهد منخفض</td></tr>
+    <tr><td>Isc / Icn</td><td>≤ 1.0</td><td>6 · 8</td><td>حريق</td></tr>
+    <tr><td>Inrush / P_surge</td><td>≤ 1.0</td><td>9</td><td>الإنفرتر لا يقلع</td></tr>
+  </table>
+</div>
+
+<div id="standards" class="page-break">
+  <h2>📚 المعايير المرجعية (13 معيار)</h2>
+  <table>
+    <tr><th>المعيار</th><th>الاستخدام</th><th>البطاقة</th></tr>
+    <tr><td>IEC 60050</td><td>تعريفات · أوم</td><td>1</td></tr>
+    <tr><td>NREL PVWatts</td><td>PR · PV Sizing</td><td>2</td></tr>
+    <tr><td>IEC 61215</td><td>معامل حرارة Voc</td><td>2 · 4.b</td></tr>
+    <tr><td>IEC 62548</td><td>مصفوفات PV · MPPT</td><td>2 · 4.b · 6.b</td></tr>
+    <tr><td>IEC 62620</td><td>بطاريات LiFePO₄</td><td>3 · 5</td></tr>
+    <tr><td>IEC 62619</td><td>BMS · R_module</td><td>3 · 9</td></tr>
+    <tr><td>IEC 62109-1</td><td>إنفرترات PV</td><td>4</td></tr>
+    <tr><td>IEC 60364-5-52</td><td>كابلات</td><td>6 · 6.b · 7</td></tr>
+    <tr><td>IEC 60364-4-43</td><td>تنسيق القواطع</td><td>6 · 8</td></tr>
+    <tr><td>IEC 60364-4-41</td><td>RCD (30 mA)</td><td>7 · 8</td></tr>
+    <tr><td>IEC 60364-5-54</td><td>التأريض (10Ω)</td><td>7 · 8</td></tr>
+    <tr><td>IEC 60947-2</td><td>قدرة قطع (Icn)</td><td>6 · 8</td></tr>
+    <tr><td>IEC 60898-1</td><td>تصنيفات القواطع</td><td>6</td></tr>
+  </table>
+  <div class="note" style="margin-top: 30px;"><strong>📌 ملاحظة:</strong> هذا المستند مرجع هندسي تعليمي. التصميم النهائي يحتاج مراجعة مهندس مؤهل + بيانات المصنّع + قياس ميداني.</div>
+  <div style="text-align: center; margin-top: 50px; padding: 30px; background: #1a1a1a; color: #d4af37; border-radius: 12px;">
+    <h2 style="color: #d4af37; border: none; padding: 0;">م/ محمد الأسد</h2>
+    <p>Al-Asad Engineering · الهندسة والطاقة</p>
+    <p>📞 +967 774 616 896</p>
+    <p>📧 alasadm293@gmail.com</p>
+    <p>📍 إب — الجمهورية اليمنية</p>
+    <p style="margin-top: 20px; font-size: 0.9em;">© 2026 — جميع الحقوق محفوظة</p>
+  </div>
+</div>
+
+</body>
+</html>
