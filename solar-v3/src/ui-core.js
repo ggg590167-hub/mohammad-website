@@ -98,6 +98,10 @@ function buildReport(systemResult, validationResult, meta) {
     c3.push(row('عدد الوحدات', s.battery.units + ' × ' + s.battery.unitAh + ' Ah (' + fmt((s.battery.unitAh * s.battery.voltage) / 1000, 2) + ' kWh)'));
     c3.push(row('السعة الفعلية', fmtInt(s.battery.actualAh) + ' Ah'));
     c3.push(row('الطاقة الفعلية', fmtInt(s.battery.actualWh) + ' Wh (' + fmt(s.battery.actualWh/1000, 2) + ' kWh)'));
+    const eUsable = s.battery.actualWh * s.battery.dod;
+    const eAC = eUsable * (s.config.INV_EFF || 0.92);
+    c3.push(row('الطاقة المتاحة (DoD ' + fmt(s.battery.dod * 100, 0) + '%)', fmtInt(eUsable) + ' Wh (' + fmt(eUsable/1000, 2) + ' kWh)'));
+    c3.push(row('الطاقة التقريبية عند AC', fmtInt(eAC) + ' Wh (' + fmt(eAC/1000, 2) + ' kWh)'));
   } else {
     c3.push(row('الطاقة المطلوبة', fmt(s.battery.requiredKWh, 1) + ' kWh'));
     c3.push(row('عدد الأبراج', s.battery.towers + ' × ' + s.battery.unitKWh + ' kWh'));
@@ -209,6 +213,13 @@ function buildReport(systemResult, validationResult, meta) {
     var minTC = (s.config && s.config.MIN_TEMP_C != null) ? s.config.MIN_TEMP_C : 0;
     var betaVoc = (s.config && s.config.BETA_VOC != null) ? s.config.BETA_VOC : -0.003;
     c4b.push(row('أقصى Voc بارد (' + minTC + '°C)', fmt(r.maxVocCold, 0) + ' V'));
+    if (s.config.MPPT_MAX_VOC && r.maxVocCold) {
+      const mpptMax = s.config.MPPT_MAX_VOC;
+      const margin = ((mpptMax - r.maxVocCold) / mpptMax) * 100;
+      const mSafe = margin >= 10;
+      c4b.push(row('MPPT_max (الإنفرتر)', fmt(mpptMax, 0) + ' V'));
+      c4b.push(row('الهامش', fmt(margin, 1) + '% ' + (mSafe ? '✅ (≥10%)' : '⚠️ (<10%)')));
+    }
     c4b.push('<div class="sc-note">Voc(' + minTC + '°C) = Voc_STC × [1 + ' + betaVoc + ' × (' + minTC + ' - 25)] · معامل افتراضي — راجع ورقة بيانات اللوح</div>');
     c4b.push(row('جهد السلسلة (Vmp)', fmt(r.maxStringVoltage, 0) + ' V'));
     c4b.push(row('تيار السلسلة', fmt(r.stringCurrents[0], 1) + ' A'));
@@ -220,6 +231,11 @@ function buildReport(systemResult, validationResult, meta) {
   /* ═══ بطاقة 5: التيارات ═══ */
   const c5 = [];
   c5.push(row('تيار البطارية (DC)', fmt(s.iBat, 1) + ' A'));
+  if (s.battery && s.battery.actualAh > 0) {
+    const cRate = s.iBat / s.battery.actualAh;
+    const cSafe = cRate <= 1;
+    c5.push(row('C-rate (معدل التفريغ)', fmt(cRate, 2) + 'C ' + (cSafe ? '✅ (آمن — الحد 1C)' : '⚠️ (قريب من الحد)')));
+  }
   c5.push(row('تيار AC لكل طور', fmt(s.iAc, 1) + ' A'));
   cards.push(card('🔌 5. التيارات', c5));
 
@@ -401,7 +417,8 @@ function buildReport(systemResult, validationResult, meta) {
   /* ═══ بطاقة 8: التحقق ═══ */
   const c8 = [];
   if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ اجتاز 14/14 فحصاً منفذاً + تحقق يدوي مطلوب</strong>' +
+    c8.push('<div class="sc-ok"><strong>✅ 14/14 فحصاً حسابياً اجتاز</strong>' +
+      '<br><small>⚠️ تحقق يدوي مطلوب: BMS · Inrush · التأريض</small>' +
       '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
       '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Inrush · BMS</small></div>');
   } else {
