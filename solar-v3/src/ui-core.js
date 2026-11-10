@@ -99,6 +99,7 @@ function buildReport(systemResult, validationResult, meta) {
     c3.push(row('السعة الفعلية', fmtInt(s.battery.actualAh) + ' Ah'));
     c3.push(row('الطاقة الفعلية', fmtInt(s.battery.actualWh) + ' Wh (' + fmt(s.battery.actualWh/1000, 2) + ' kWh)'));
     const eUsable = s.battery.actualWh * s.battery.dod;
+    // ⚠️ ملاحظة: eAC = eUsable × η_inv — لا تشمل η_discharge (غير مطبقة حالياً)
     const eAC = eUsable * (s.config.INV_EFF || 0.92);
     c3.push(row('الطاقة المتاحة (DoD ' + fmt(s.battery.dod * 100, 0) + '%)', fmtInt(eUsable) + ' Wh (' + fmt(eUsable/1000, 2) + ' kWh)'));
     c3.push(row('الطاقة التقريبية عند AC', fmtInt(eAC) + ' Wh (' + fmt(eAC/1000, 2) + ' kWh)'));
