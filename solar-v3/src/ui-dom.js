@@ -207,6 +207,22 @@ function readInputs() {
     });
   }
 
+  // v3.10.10: قراءة الحقول الجديدة (كانت تُحفظ في localStorage فقط)
+  const nightSel = s('sc3-nightPct');
+  let nightPct = 60;
+  if (nightSel === 'custom') nightPct = v('sc3-customNight') || 60;
+  else if (nightSel) nightPct = parseFloat(nightSel) || 60;
+  inputs.nightPct = nightPct;
+
+  const reserveSel = s('sc3-reservePct');
+  let reservePct = 20;
+  if (reserveSel === 'custom') reservePct = v('sc3-customReserve') || 20;
+  else if (reserveSel) reservePct = parseFloat(reserveSel) || 20;
+  inputs.reservePct = reservePct;
+
+  inputs.etaCharge = (v('sc3-etaCharge') || 100) / 100;
+  inputs.etaDischarge = (v('sc3-etaDischarge') || 100) / 100;
+  inputs.priority = s('sc3-priority') || 'load';
   return inputs;
 }
 

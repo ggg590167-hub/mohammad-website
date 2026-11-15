@@ -162,13 +162,23 @@ function buildReport(systemResult, validationResult, meta) {
         '</div>');
     }
 
-    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">⚖️ 6) الأولوية:</div>');
-    c3c.push('<div style="padding:10px;background:#0b0c0d;border-radius:6px;font-size:0.9em">' +
-      '• <strong>الأحمال النهارية أولاً</strong> (فيزيائياً)<br>' +
-      '• <strong>الفائض</strong> → شحن البطارية<br>' +
-      '• إذا نقص الإنتاج → البطارية تُفرّغ<br>' +
-      '• "البطارية أولاً" = إعداد <strong>برمجي</strong> في الإنفرتر — لا يغير الفيزياء' +
-      '</div>');
+    const priorityLabel = eb.priority === 'battery' ? 'البطارية أولاً' : 'الأحمال أولاً';
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">⚖️ 6) الأولوية (المختارة: ' + priorityLabel + '):</div>');
+    if (eb.priority === 'battery') {
+      c3c.push('<div style="padding:10px;background:#0b0c0d;border-radius:6px;font-size:0.9em">' +
+        '• <strong>شحن البطارية أولاً</strong> — من إنتاج PV المباشر<br>' +
+        '• <strong>الفائض</strong> بعد شحن البطارية → الأحمال النهارية<br>' +
+        '• إذا نقص الإنتاج → تفريغ البطارية للأحمال<br>' +
+        '• <strong>ملاحظة</strong>: إعداد برمجي — يؤثر على مسار الطاقة لحظياً' +
+        '</div>');
+    } else {
+      c3c.push('<div style="padding:10px;background:#0b0c0d;border-radius:6px;font-size:0.9em">' +
+        '• <strong>الأحمال النهارية أولاً</strong> — من إنتاج PV المباشر<br>' +
+        '• <strong>الفائض</strong> بعد تغذية الأحمال → شحن البطارية<br>' +
+        '• إذا نقص الإنتاج → تفريغ البطارية للأحمال<br>' +
+        '• <strong>ملاحظة</strong>: إعداد برمجي — يؤثر على مسار الطاقة لحظياً' +
+        '</div>');
+    }
 
     c3c.push('<div style="padding:10px;background:#1a1c1d;border-right:3px solid #fbbf24;border-radius:6px;margin:10px 0;font-size:0.85em">' +
       '<strong>⚠️ ملاحظات:</strong><br>' +
@@ -195,17 +205,28 @@ function buildReport(systemResult, validationResult, meta) {
       inv50: 6500       // $ لكل إنفرتر 50kW HV
     };
 
+    /* ═══ v3.10.12: تصنيف نوعي (للعرض فقط — لا يكشف الأسعار للمستخدم) ═══
+       عدّل الحدود هنا لتغيير التصنيف:
+       < 200: منخفضة جداً | < 800: منخفضة | < 2500: متوسطة | < 6000: مرتفعة | ≥ 6000: مرتفعة جداً */
+    const costTier = (amount) => {
+      if (amount < 200)  return 'منخفضة جداً';
+      if (amount < 800)  return 'منخفضة';
+      if (amount < 2500) return 'متوسطة';
+      if (amount < 6000) return 'مرتفعة';
+      return 'مرتفعة جداً';
+    };
+
     /* ═══ بطارية ═══ */
     const c3b = [];
     let batCost = 0;
     if (s.battery.mode === 'LV') {
       batCost = (s.battery.units || 0) * PRICE.batLV;
       c3b.push(row('🔋 سعة البطارية الحالية', fmt(s.battery.actualWh/1000, 1) + ' kWh (' + s.battery.units + ' × 100Ah)'));
-      c3b.push(row('   التكلفة التقديرية', '≈ $' + fmtInt(batCost)));
+      c3b.push(row('   التكلفة التقديرية', costTier(batCost)));
     } else {
       batCost = (s.battery.towers || 0) * PRICE.batHV;
       c3b.push(row('🔋 سعة البطارية الحالية', fmt(s.battery.actualKWh, 1) + ' kWh (' + s.battery.towers + ' برج)'));
-      c3b.push(row('   التكلفة التقديرية', '≈ $' + fmtInt(batCost)));
+      c3b.push(row('   التكلفة التقديرية', costTier(batCost)));
     }
 
     /* ═══ الألواح (لإعادة الشحن في 3 أيام) ═══ */
@@ -221,7 +242,7 @@ function buildReport(systemResult, validationResult, meta) {
     c3b.push(row('☀️ الألواح المطلوبة (شحن في 3 أيام)', fmtInt(pvNeeded) + ' W (' + panelsNeeded + ' لوح)'));
     c3b.push(row('   الحالي', fmtInt(s.pv.actualW) + ' W (' + s.pv.nPanels + ' لوح)'));
     if (panelsExtra > 0) {
-      c3b.push(row('   ⚠️ إضافي مطلوب', '+ ' + panelsExtra + ' لوح (≈ $' + fmtInt(panelExtraCost) + ')'));
+      c3b.push(row('   ⚠️ إضافي مطلوب', '+ ' + panelsExtra + ' لوح (تكلفة ' + costTier(panelExtraCost) + ')'));
     } else {
       c3b.push(row('   ✅ لا حاجة لإضافة ألواح', 'الشحن يكتمل في 3 أيام'));
     }
@@ -231,11 +252,11 @@ function buildReport(systemResult, validationResult, meta) {
       ? (s.inverter.nInverters || 1) * PRICE.inv50
       : (s.inverter.nInverters || 1) * PRICE.inv8;
     c3b.push(row('⚡ الإنفرتر', s.inverter.stdW + ' W (' + s.inverter.nInverters + ' وحدة)'));
-    c3b.push(row('   لا يتغير مع زيادة الاستقلالية', '≈ $' + fmtInt(invCost)));
+    c3b.push(row('   لا يتغير مع زيادة الاستقلالية', costTier(invCost)));
 
     /* ═══ التكلفة الإجمالية ═══ */
     const totalCost = batCost + panelCost + invCost;
-    c3b.push(row('💰 التكلفة الإجمالية التقديرية', '≈ $' + fmtInt(totalCost)));
+    c3b.push(row('💰 التكلفة الإجمالية التقديرية', costTier(totalCost)));
 
     /* ═══ النصيحة ═══ */
     let advice = '';
@@ -252,7 +273,7 @@ function buildReport(systemResult, validationResult, meta) {
     const altBatCost = batCost / aut;
     const saving = batCost - altBatCost;
     if (saving > 300) {
-      c3b.push(row('💡 بديل اقتصادي', 'يوم واحد فقط — توفير ≈ $' + fmtInt(saving) + ' من البطاريات'));
+      c3b.push(row('💡 بديل اقتصادي', 'يوم واحد فقط — توفير ' + Math.round((saving / batCost) * 100) + '% من تكلفة البطاريات'));
     }
 
     /* ═══ تنبيه أمني ═══ */
