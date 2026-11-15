@@ -332,6 +332,9 @@ function buildHTML() {
     + '<option value="custom">مخصص...</option>'
     + '</select></div>'
     + '<div class="sc-field" id="sc3-customPeak-field" style="display:none"><label>معامل ذروة مخصص</label><input id="sc3-customPeak" type="number" value="3.5" step="0.1" min="1" max="20"></div>'
+    + '</div>'
+            + '<div id="sc3-block-general" class="sc-fields" style="margin-top:12px;border-top:1px solid #333;padding-top:12px">'
+            + '<div style="grid-column:1/-1;color:#c49b40;font-weight:700;font-size:0.92em;margin-bottom:6px">⚙️ الإعدادات الفيزيائية (مشتركة لكل الطرق)</div>'
     + '<div class="sc-field"><label>نسبة الاستهلاك الليلي (%)</label><select id="sc3-nightPct">'
     + '<option value="20">20% — تجاري</option>'
     + '<option value="30">30% — صناعي</option>'
@@ -356,7 +359,7 @@ function buildHTML() {
     + '<option value="load" selected>الأحمال أولاً (افتراضي)</option>'
     + '<option value="battery">البطارية أولاً (للشبكة/الطوارئ)</option>'
     + '</select></div>'
-    + '</div>'
+            + '</div>'
     + '</fieldset>'
 
     + '<fieldset>'

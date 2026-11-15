@@ -817,7 +817,8 @@ body.calc-modal-open{overflow:hidden;}
   var lastFocused = null;
 
   function openModal(){
-    lastFocused = document.activeElement;
+    if (window.resetCalculator) window.resetCalculator();
+            lastFocused = document.activeElement;
     modal.classList.add('open');
     document.body.classList.add('calc-modal-open');
     // إعادة تشغيل الواجهة عبر trigger حدث resize لإعادة الرسم
@@ -831,7 +832,8 @@ body.calc-modal-open{overflow:hidden;}
   function closeModal(){
     modal.classList.remove('open');
     document.body.classList.remove('calc-modal-open');
-    if (lastFocused && lastFocused.focus) lastFocused.focus();
+    if (window.resetCalculator) window.resetCalculator();
+            if (lastFocused && lastFocused.focus) lastFocused.focus();
   }
 
   openBtn.addEventListener('click', function(e){
@@ -854,6 +856,27 @@ body.calc-modal-open{overflow:hidden;}
   });
 })();
 </script>
-<script src="copy-btn-v39.js" defer></script>
+<script>
+/* v3.10.15: resetCalculator — تصفير احترافي */
+window.resetCalculator = function() {
+  try { localStorage.removeItem('solarCalc3Inputs'); } catch(e) {}
+  document.querySelectorAll('[id^="sc3-"]').forEach(function(el) {
+    if (el.tagName === 'INPUT') {
+      if (el.defaultValue !== undefined) el.value = el.defaultValue;
+    } else if (el.tagName === 'SELECT') {
+      var defOpt = el.querySelector('option[selected]') || el.options[0];
+      if (defOpt) el.value = defOpt.value;
+    }
+  });
+  document.querySelectorAll('[id^="sc3-custom"][id$="-field"]').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  var report = document.getElementById('sc3-report');
+  if (report) report.innerHTML = '';
+  var mSel = document.getElementById('sc3-method');
+  if (mSel) mSel.dispatchEvent(new Event('change'));
+};
+</script>
+<script src="copy-btn-v39.js?v=31015" defer></script>
 </body>
 </html>

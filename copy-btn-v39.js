@@ -10,11 +10,30 @@
     'sc3-autonomy': 'أيام الاستقلالية', 'sc3-panelW': 'قدرة اللوح (W)',
     'sc3-mode': 'وضع النظام (LV/HV)', 'sc3-phases': 'عدد الأطوار',
     'sc3-peakFactor': 'معامل الذروة', 'sc3-lBat': 'طول كابل البطارية (م)',
-    'sc3-lPv': 'طول كابل الألواح (م)', 'sc3-lAc': 'طول كابل AC (م)'
+    'sc3-lPv': 'طول كابل الألواح (م)', 'sc3-lAc': 'طول كابل AC (م)',
+            'sc3-nightPct': 'نسبة الاستهلاك الليلي', 'sc3-reservePct': 'احتياطي البطارية',
+            'sc3-etaCharge': 'كفاءة شحن البطارية', 'sc3-etaDischarge': 'كفاءة تفريغ البطارية',
+            'sc3-priority': 'أولوية البطارية'
   };
 
   function isVisible(el) { return el.offsetParent !== null; }
   function displayValue(el) {
+            // v3.10.15: 5 حقول فيزيائية
+            var _id = el.id;
+            if (_id === 'sc3-nightPct' || _id === 'sc3-reservePct') {
+              if (el.value === 'custom') {
+                var _cId = _id === 'sc3-nightPct' ? 'sc3-customNight' : 'sc3-customReserve';
+                var _cEl = document.getElementById(_cId);
+                return (_cEl ? _cEl.value : '?') + '% (مخصص)';
+              }
+              return el.value + '%';
+            }
+            if (_id === 'sc3-etaCharge' || _id === 'sc3-etaDischarge') {
+              return el.value + '%';
+            }
+            if (_id === 'sc3-priority') {
+              return el.value === 'battery' ? 'البطارية أولاً' : 'الأحمال أولاً';
+            }
     if (el.tagName === 'SELECT') {
       const o = el.options[el.selectedIndex];
       return o ? o.textContent.trim() : el.value;
