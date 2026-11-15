@@ -78,6 +78,9 @@ function buildReport(systemResult, validationResult, meta) {
   c1.push(row('الاستهلاك اليومي', fmtInt(s.load.dailyWh) + ' Wh (' + fmt(s.load.dailyKWh, 2) + ' kWh)'));
   c1.push(row('متوسط الحمل', fmtInt(s.load.avgW) + ' W'));
   c1.push(row('أعلى حمل لحظي', fmtInt(s.load.peakW) + ' W'));
+  if (s.load.peakFactor) {
+    c1.push(row('معامل الذروة', fmt(s.load.peakFactor, 1) + '× (تقديري)'));
+  }
   c1.push(row('وضع النظام', s.mode + ' (' + s.battery.voltage + ' V)'));
   const phaseMode = s.phasesChoice === 'auto' ? 'تلقائي' : 'يدوي';
   c1.push(row('عدد الأطوار', s.phases + 'φ (' + phaseMode + ')'));
@@ -110,6 +113,74 @@ function buildReport(systemResult, validationResult, meta) {
   }
   c3.push(row('DoD المستخدم', fmt(s.battery.dod * 100, 0) + ' %'));
   cards.push(card('🔋 3. بنك البطاريات', c3));
+
+  // ═══ v3.10.6 — بطاقة 3.c: ميزان الطاقة اليومي ═══
+  if (s.energyBalance) {
+    const eb = s.energyBalance;
+    const c3c = [];
+
+    c3c.push('<div style="padding:10px;background:#1a1c1d;border-right:3px solid #60a5fa;border-radius:6px;margin:8px 0;font-size:0.9em">' +
+      '<strong style="color:#60a5fa">⚙️ الافتراضات:</strong>' +
+      '<br>• نسبة ليلية: ' + fmt(eb.nightPct * 100, 0) + '% · نهارية: ' + fmt(eb.dayPct * 100, 0) + '%' +
+      '<br>• احتياطي البطارية: ' + fmt(eb.reservePct * 100, 0) + '% (هدف تخطيطي — ليس قيداً فيزيائياً)' +
+      '<br>• η_charge: ' + fmt(eb.etaCharge * 100, 0) + '% · η_discharge: ' + fmt(eb.etaDischarge * 100, 0) + '%' +
+      '<br>• أولوية البطارية: ' + (eb.priority === 'battery' ? 'البطارية أولاً (إعداد برمجي)' : 'الأحمال أولاً (فيزيائياً)') +
+      '</div>');
+
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">☀️ 1) إنتاج الألواح نهاراً:</div>');
+    c3c.push(row('القدرة اللحظية (STC)', fmt(eb.pvPowerW / 1000, 2) + ' kW (' + fmtInt(eb.pvPowerW) + ' W)'));
+    c3c.push(row('E_pv_DC (Bus)', fmtInt(eb.ePvDC) + ' Wh DC (' + fmt(eb.ePvDC / 1000, 2) + ' kWh)'));
+    c3c.push(row('E_pv_AC (للأحمال)', fmtInt(eb.ePvAC) + ' Wh AC (' + fmt(eb.ePvAC / 1000, 2) + ' kWh)'));
+
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">⚡ 2) توزيع الاستهلاك:</div>');
+    c3c.push(row('استهلاك النهار (' + fmt(eb.dayPct * 100, 0) + '%)', fmtInt(eb.eDayAC) + ' Wh AC'));
+    c3c.push(row('استهلاك الليل (' + fmt(eb.nightPct * 100, 0) + '%)', fmtInt(eb.eNight) + ' Wh AC'));
+
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">🔄 3) الفائض/العجز (DC):</div>');
+    c3c.push(row('E_net_DC (PV − حمل)', fmtInt(eb.eNetDC) + ' Wh DC'));
+    if (eb.eNetDC >= 0) {
+      c3c.push(row('الشحن من PV', fmtInt(eb.eChargeDC) + ' Wh DC'));
+    } else {
+      c3c.push(row('التفريغ للنهار', fmtInt(eb.eDischargeDC) + ' Wh DC'));
+    }
+
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">🔋 4) البطارية:</div>');
+    c3c.push(row('E_usable (DC)', fmtInt(eb.batteryUsableDC) + ' Wh'));
+    c3c.push(row('بعد الاحتياطي (' + fmt(eb.reservePct * 100, 0) + '%)', fmtInt(eb.batteryAfterReserveDC) + ' Wh'));
+    c3c.push(row('صافي المخزّن (DC)', fmtInt(eb.eStoredNetDC) + ' Wh'));
+    c3c.push(row('المتاح ليلاً (AC)', fmtInt(eb.eAvailableAC) + ' Wh'));
+
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">🌙 5) الرصيد الليلي:</div>');
+    if (eb.balanceOk) {
+      c3c.push('<div style="padding:10px;background:#0e2a1c;border-right:3px solid #059669;border-radius:6px">' +
+        '<strong>✅ +' + fmtInt(eb.nightBalance) + ' Wh — البطارية تكفي ليلاً</strong>' +
+        '</div>');
+    } else {
+      c3c.push('<div style="padding:10px;background:#3a0e0e;border-right:3px solid #dc2626;border-radius:6px">' +
+        '<strong>🔴 ' + fmtInt(eb.nightBalance) + ' Wh — البطارية غير كافية ليلاً</strong>' +
+        '<br>الحل: زد عدد الوحدات أو قلل النسبة الليلية أو أضف لوح' +
+        '</div>');
+    }
+
+    c3c.push('<div style="margin-top:10px;font-weight:700;color:#d4af37">⚖️ 6) الأولوية:</div>');
+    c3c.push('<div style="padding:10px;background:#0b0c0d;border-radius:6px;font-size:0.9em">' +
+      '• <strong>الأحمال النهارية أولاً</strong> (فيزيائياً)<br>' +
+      '• <strong>الفائض</strong> → شحن البطارية<br>' +
+      '• إذا نقص الإنتاج → البطارية تُفرّغ<br>' +
+      '• "البطارية أولاً" = إعداد <strong>برمجي</strong> في الإنفرتر — لا يغير الفيزياء' +
+      '</div>');
+
+    c3c.push('<div style="padding:10px;background:#1a1c1d;border-right:3px solid #fbbf24;border-radius:6px;margin:10px 0;font-size:0.85em">' +
+      '<strong>⚠️ ملاحظات:</strong><br>' +
+      '• تقدير ثابت (steady-state) — <strong>لا محاكاة زمنية</strong><br>' +
+      '• η_charge/η_discharge = ' + fmt(eb.etaCharge * 100, 0) + '% — <strong>راجع ورقة البطارية</strong><br>' +
+      '• البطارية <strong>لا تعرف الليل من النهار</strong> — قد تُفرّغ أكثر إذا احتاج الحمل<br>' +
+      '• احتياطي البطارية = <strong>هدف تخطيطي</strong> — ليس ضماناً<br>' +
+      '• الأولوية (Load/Battery) <strong>لا تغير الأرقام اليومية</strong> — تؤثر على مسار الطاقة لحظياً' +
+      '</div>');
+
+    cards.push(card('☀️🌙 3.c ميزان الطاقة اليومي (تقديري)', c3c));
+  }
 
   /* ═══ بطاقة 3.b: معلومات للتوسع (عند أيام استقلالية > 1) ═══ */
   if (s.battery.autonomyDays && s.battery.autonomyDays > 1) {
@@ -254,7 +325,11 @@ function buildReport(systemResult, validationResult, meta) {
       s.config.BATTERY_R_MODULE_MOHM != null &&
       s.config.BREAKER_ICN_KA != null) {
     const nU = s.battery.units || s.battery.towers || 1;
-    const rP = s.config.BATTERY_R_MODULE_MOHM / Math.max(1, nU);
+    // v3.10.9: مقاومة الوحدة حسب الجهد (LV=8mΩ · HV=50mΩ)
+    const rModule = (s.battery.voltage >= 200)
+      ? (s.config.BATTERY_R_TOWER_MOHM || 50)
+      : (s.config.BATTERY_R_MODULE_MOHM || 8);
+    const rP = rModule / Math.max(1, nU);
     const vB = s.battery.voltage || 48;
     const iscKA = (vB / (rP / 1000)) / 1000;
     const icnKA = s.config.BREAKER_ICN_KA;
@@ -274,8 +349,7 @@ function buildReport(systemResult, validationResult, meta) {
           '<br>• فيوز <strong>Class T فردي لكل وحدة</strong> (150A · 200 kA Icn)' +
           '<br>• فيوز <strong>Class T رئيسي</strong> (400A · 200 kA Icn)' +
           '<br>• مراجعة BMS (حدود تيار القصر)' +
-          '<br>💡 <strong>بديل معماري:</strong> النظر في HV (400V) — ' +
-          'عدد وحدات متوازية أقل → Isc أقل' +
+          '<br>💡 <strong>بديل معماري:</strong> قلّل عدد الوحدات المتوازية (وحدات أكبر سعة) → Isc أقل' +
           '</div>';
       } else if (iscKA > 20) {
         iscLevel = '⚠️ خطر متوسط';
@@ -337,12 +411,41 @@ function buildReport(systemResult, validationResult, meta) {
   if (s.config && s.config.RCD_TRIP_mA != null) {
     c7.push(row('RCD', s.config.RCD_TRIP_mA + ' mA · نوع ' + (s.config.RCD_TYPE || 'AC') + ' (حماية أشخاص)'));
   }
+  
   if (s.config && s.config.EARTH_RESISTANCE_OHM != null) {
     c7.push(row('مقاومة التأريض', fmt(s.config.EARTH_RESISTANCE_OHM, 1) + ' Ω (الحد 10)'));
   } else {
     c7.push(row('مقاومة التأريض', '⚠️ لم تُقَس — قياس ميداني'));
   }
   cards.push(card('⚡ 7. كابل AC', c7));
+
+/* ═══ بطاقة 8: التحقق ═══ */
+  const c8 = [];
+  if (v.valid) {
+    c8.push('<div class="sc-ok"><strong>✅ 14/14 فحصاً حسابياً اجتاز</strong>' +
+      '<br><small>⚠️ تحقق يدوي مطلوب: BMS · Inrush · التأريض</small>' +
+      '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
+      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Inrush · BMS</small></div>');
+  } else {
+    c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
+  }
+
+  // دمج تحذيرات الأطوار
+  const allIssues = (v.issues || []).slice();
+  if (s.phaseWarnings && s.phaseWarnings.length > 0) {
+    s.phaseWarnings.forEach(pw => allIssues.push(pw));
+  }
+  
+  if (allIssues.length > 0) {
+    const list = allIssues.map(i => {
+      const icon = i.severity === 'error' ? '🚨' : (i.severity === 'warning' ? '⚠️' : 'ℹ️');
+      return '<li>' + icon + ' ' + i.message + '</li>';
+    });
+    c8.push('<ul>' + list.join('') + '</ul>');
+  } else {
+    c8.push('<p>✅ لا تحذيرات.</p>');
+  }
+  cards.push(card('🛡️ 8. التحقق النهائي', c8));
 
   /* ═══ بطاقة 9: قائمة تحقق يدوي (Inrush + BMS) ═══ */
   {
@@ -413,35 +516,83 @@ function buildReport(systemResult, validationResult, meta) {
       '</div>');
 
     cards.push(card('📋 9. تحقق يدوي: Inrush + BMS', c9));
+
+
+  // ═══ v3.10.7 — بطاقة 10: الملخص التنفيذي (جدول مختصر) ═══
+  {
+    // Isc (نفس بطاقة 6)
+    let iscKA = 0;
+    if (s.config && s.battery) {
+      const nU = s.battery.units || s.battery.towers || 1;
+      // v3.10.9: مقاومة الوحدة حسب الجهد (LV=8mΩ · HV=50mΩ)
+      const rModule = (s.battery.voltage >= 200)
+        ? (s.config.BATTERY_R_TOWER_MOHM || 50)
+        : (s.config.BATTERY_R_MODULE_MOHM || 8);
+      const rP = rModule / Math.max(1, nU);
+      const vB = s.battery.voltage || 48;
+      iscKA = (vB / (rP / 1000)) / 1000;
+    }
+    const needsClassT = iscKA > 6;
+
+    const c10 = [];
+    const pvMargin = ((s.pv.actualW - s.pv.requiredW) / s.pv.requiredW) * 100;
+
+    // ═══ جدول مختصر ═══
+    c10.push('<table style="width:100%;border-collapse:collapse;background:#0b0c0d;border-radius:8px;font-size:0.88em;margin:8px 0">' +
+      '<tr style="background:#1a1c1d;color:#d4af37">' +
+      '<th style="padding:10px;text-align:right;border-bottom:2px solid #d4af37">المكوّن</th>' +
+      '<th style="padding:10px;text-align:right;border-bottom:2px solid #d4af37">المواصفة</th>' +
+      '<th style="padding:10px;text-align:right;border-bottom:2px solid #d4af37">ملاحظة</th>' +
+      '</tr>' +
+
+      '<tr><td style="padding:8px;border-bottom:1px solid #222">☀️ الألواح</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + s.pv.nPanels + ' × ' + s.pv.panelW + 'W = ' + fmt(s.pv.actualW/1000, 2) + ' kWp</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + (pvMargin >= 10 ? '✅ هامش ' + fmt(pvMargin, 1) + '%' : '⚠️ هامش ' + fmt(pvMargin, 1) + '% (ضيق)') + '</td></tr>' +
+
+      '<tr><td style="padding:8px;border-bottom:1px solid #222">⚡ الإنفرتر</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + fmtInt(s.inverter.stdW) + 'W · ' + s.inverter.phases + 'φ · إقلاع ' + fmtInt(s.inverter.surgeW) + 'W</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">ترقية → ' + fmtInt(Math.ceil(s.inverter.stdW * 1.5 / 500) * 500) + 'W</td></tr>' +
+
+      '<tr><td style="padding:8px;border-bottom:1px solid #222">🔋 البطاريات</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + s.battery.units + ' × ' + s.battery.unitAh + 'Ah = ' + fmt(s.battery.actualWh/1000, 1) + ' kWh</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">متاح ' + fmt(s.battery.actualWh * s.battery.dod / 1000, 1) + ' kWh (DoD ' + fmt(s.battery.dod*100, 0) + '%)</td></tr>' +
+
+      '<tr><td style="padding:8px;border-bottom:1px solid #222">☀️➡️⚡ كابل PV</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + s.pvCable.cableSize + ' mm² · قاطع ' + s.pvCable.breaker + 'A</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">ΔV ' + fmt(s.pvCable.vDropPercent, 2) + '% ✅</td></tr>' +
+
+      '<tr><td style="padding:8px;border-bottom:1px solid #222">🔋➡️⚡ كابل Bat</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + s.batteryCable.cableSize + ' mm² · ' + (needsClassT ? 'Class T ' + s.batteryCable.breaker + 'A' : 'قاطع ' + s.batteryCable.breaker + 'A') + '</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + (needsClassT ? '⚠️ Isc ' + fmt(iscKA, 1) + ' kA → Class T' : '✅ Isc ' + fmt(iscKA, 1) + ' kA') + '</td></tr>' +
+
+      '<tr><td style="padding:8px;border-bottom:1px solid #222">⚡➡️🏠 كابل AC</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">' + s.acCable.cableSize + ' mm² · قاطع ' + s.acCable.breaker + 'A · RCD ' + s.config.RCD_TRIP_mA + 'mA</td>' +
+      '<td style="padding:8px;border-bottom:1px solid #222">ΔV ' + fmt(s.acCable.vDropPercent, 2) + '% ✅</td></tr>' +
+
+      '<tr><td style="padding:8px">🛡️ القواطع</td>' +
+      '<td style="padding:8px">DC ' + s.pvCable.breaker + 'A · ' + (needsClassT ? 'Class T ' + s.batteryCable.breaker + 'A' : 'DC ' + s.batteryCable.breaker + 'A') + ' · AC ' + s.acCable.breaker + 'A</td>' +
+      '<td style="padding:8px">' + (needsClassT ? '⚠️ 200 kA Icn' : '✅ 25 kA') + '</td></tr>' +
+
+      '</table>');
+
+    // ═══ ملاحظات التوسع (مختصرة — 3 أسطر) ═══
+    c10.push('<div style="padding:10px;background:#0e2a1c;border-right:3px solid #059669;border-radius:6px;margin:6px 0;font-size:0.85em">' +
+      '<strong>🟢 توسع خفيف:</strong> +' + Math.max(0, Math.floor((s.pv.actualW * 1.20 - s.pv.actualW) / s.pv.panelW)) + ' لوح · +2 بطارية · بلا تغيير كابلات' +
+      '</div>');
+
+    c10.push('<div style="padding:10px;background:#3a2409;border-right:3px solid #f59e0b;border-radius:6px;margin:6px 0;font-size:0.85em">' +
+      '<strong>🟡 توسع متوسط:</strong> إنفرتر +1000W · +4 بطارية · راجع: كابل Bat · القاطع · BMS · RCD' +
+      '</div>');
+
+    c10.push('<div style="padding:10px;background:#3a0e0e;border-right:3px solid #dc2626;border-radius:6px;margin:6px 0;font-size:0.85em">' +
+      '<strong>🔴 توسع كبير:</strong> HV (400V) إذا P_peak > 30 kW · إعادة حساب كامل' +
+      '</div>');
+
+    cards.push(card('📋 10. الملخص التنفيذي', c10));
   }
 
-  /* ═══ بطاقة 8: التحقق ═══ */
-  const c8 = [];
-  if (v.valid) {
-    c8.push('<div class="sc-ok"><strong>✅ 14/14 فحصاً حسابياً اجتاز</strong>' +
-      '<br><small>⚠️ تحقق يدوي مطلوب: BMS · Inrush · التأريض</small>' +
-      '<br>الأخطاء: 0 | التحذيرات: ' + v.counts.warnings +
-      '<br><small style="color:#a8a9a7;font-weight:400">⚠️ لم تُفحص: Inrush · BMS</small></div>');
-  } else {
-    c8.push('<div class="sc-warn"><strong>🚨 أخطاء حرجة</strong></div>');
   }
 
-  // دمج تحذيرات الأطوار
-  const allIssues = (v.issues || []).slice();
-  if (s.phaseWarnings && s.phaseWarnings.length > 0) {
-    s.phaseWarnings.forEach(pw => allIssues.push(pw));
-  }
-  
-  if (allIssues.length > 0) {
-    const list = allIssues.map(i => {
-      const icon = i.severity === 'error' ? '🚨' : (i.severity === 'warning' ? '⚠️' : 'ℹ️');
-      return '<li>' + icon + ' ' + i.message + '</li>';
-    });
-    c8.push('<ul>' + list.join('') + '</ul>');
-  } else {
-    c8.push('<p>✅ لا تحذيرات.</p>');
-  }
-  cards.push(card('🛡️ 8. التحقق النهائي', c8));
 
   /* ═══ التاريخ ═══ */
   const dateStr = new Date().toLocaleString('ar-EG');

@@ -72,7 +72,8 @@ const SYSTEM_CONFIG = Object.freeze({
   RCD_TYPE: 'AC',             // 'AC' · 'A' · 'B'
   EARTH_RESISTANCE_OHM: null, // Ω — قياس ميداني (null = لم يُقَس)
   // ═══ Isc Prospective (v3.8) ═══
-  BATTERY_R_MODULE_MOHM: 8,   // mΩ — LiFePO₄ نموذجي (IEC 62619)
+  BATTERY_R_MODULE_MOHM: 8,   // mΩ — LiFePO₄ نموذجي (IEC 62619) — وحدة 48V
+  BATTERY_R_TOWER_MOHM: 50,   // mΩ — برج HV 400V نموذجي (~122 خلية) — راجع ورقة Pylontech
   BREAKER_ICN_KA: 6           // kA — MCB DC قياسي (IEC 60947-2)
 });
 
@@ -117,11 +118,18 @@ function analyzeLoad(input) {
     avgW = dailyWh / 24;
   }
 
+  // ═══ v3.10.5 — إضافة peakFactor للعرض ═══
+  let displayPeakFactor = null;
+  if (method === 'daily') {
+    displayPeakFactor = input.peakFactor || 3.5;
+  }
+
   return {
     dailyWh,
     dailyKWh: dailyWh / 1000,
     peakW,
-    avgW
+    avgW,
+    peakFactor: displayPeakFactor
   };
 }
 
@@ -392,7 +400,12 @@ function sizeBattery(dailyWh, mode, autDays, dod, unitAhOverride) {
       towers: towers,
       unitKWh: unitKWh,
       actualKWh: actualKWh,
-      dod: dod
+      dod: dod,
+      // ═══ v3.10.8 — حقول مشتقة للتوافق مع LV (البطاقات 3.c و 10) ═══
+      units: towers,
+      unitAh: (unitKWh * 1000) / SYSTEM_CONFIG.HV_VOLTAGE,
+      actualAh: (actualKWh * 1000) / SYSTEM_CONFIG.HV_VOLTAGE,
+      actualWh: actualKWh * 1000
     };
   }
 }
@@ -556,6 +569,60 @@ function analyzeSystem(input) {
 
   // ═══ النتيجة الكاملة ═══
   const phaseWarns = phaseWarnings(mode, load.peakW, inverter.stdW, invPhase, phasesChoice);
+
+  // ═══ v3.10.6 — ميزان الطاقة اليومي ═══
+  const nightPct = (input.nightPct != null ? input.nightPct : 60) / 100;
+  const reservePct = (input.reservePct != null ? input.reservePct : 20) / 100;
+  const etaCharge = input.etaCharge != null ? input.etaCharge : 1.0;
+  const etaDischarge = input.etaDischarge != null ? input.etaDischarge : 1.0;
+  const priority = input.priority || 'load';
+
+  const eDayAC = load.dailyWh * (1 - nightPct);
+  const eNight = load.dailyWh * nightPct;
+  const eDayDC = eDayAC / SYSTEM_CONFIG.INV_EFF;
+  const ePvDC = pv.actualW * hsp * pv.pr;
+  const ePvAC = ePvDC * SYSTEM_CONFIG.INV_EFF;
+  const eNetDC = ePvDC - eDayDC;
+
+  let eChargeDC = 0, eDischargeDC = 0, eStoredNetDC = 0;
+  if (eNetDC >= 0) {
+    eChargeDC = eNetDC * etaCharge;
+    eStoredNetDC = Math.min(eChargeDC, battery.actualWh * battery.dod * (1 - reservePct));
+    eDischargeDC = 0;
+  } else {
+    const deficitDC = -eNetDC;
+    eDischargeDC = deficitDC / etaDischarge;
+    eStoredNetDC = -eDischargeDC;
+    const maxDischarge = battery.actualWh * battery.dod * (1 - reservePct);
+    if (-eStoredNetDC > maxDischarge) {
+      eStoredNetDC = -maxDischarge;
+      eDischargeDC = maxDischarge;
+    }
+  }
+
+  const batteryUsableDC = battery.actualWh * battery.dod;
+  const batteryAfterReserveDC = batteryUsableDC * (1 - reservePct);
+  const eAvailableDC = Math.max(0, eStoredNetDC);
+  const eAvailableAC = eAvailableDC * etaDischarge * SYSTEM_CONFIG.INV_EFF;
+  const nightBalance = eAvailableAC - eNight;
+  const balanceOk = nightBalance >= 0;
+  const batteryOk = eStoredNetDC <= batteryAfterReserveDC;
+
+  const iChargeAvg = hsp > 0 ? Math.max(0, eChargeDC) / (battery.voltage * hsp) : 0;
+
+  const energyBalance = {
+    nightPct, dayPct: 1 - nightPct, reservePct,
+    etaCharge, etaDischarge, priority,
+    eDayAC, eNight, eDayDC,
+    ePvDC, ePvAC, eNetDC,
+    eChargeDC, eDischargeDC, eStoredNetDC,
+    batteryUsableDC, batteryAfterReserveDC,
+    eAvailableDC, eAvailableAC, nightBalance,
+    balanceOk, batteryOk,
+    iChargeMax, iChargeAvg,
+    pvPowerW: pv.actualW
+  };
+
   
   return {
     load,
@@ -563,6 +630,7 @@ function analyzeSystem(input) {
     phases: invPhase,
     phasesChoice: phasesChoice,
     phaseWarnings: phaseWarns,
+    energyBalance: energyBalance,
     inverter,
     pv,
     battery,

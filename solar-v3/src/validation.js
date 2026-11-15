@@ -438,12 +438,15 @@ function validateSystem(systemResult) {
 
   // ═══ 8.9 Isc Prospective — بطارية (WARNING) ═══
   if (systemResult.battery && systemResult.config &&
-      systemResult.config.BATTERY_R_MODULE_MOHM != null &&
+      (systemResult.config && (systemResult.config.BATTERY_R_MODULE_MOHM != null || systemResult.config.BATTERY_R_TOWER_MOHM != null)) &&
       systemResult.config.BREAKER_ICN_KA != null) {
     const nUnits = systemResult.battery.units
                   || systemResult.battery.towers
                   || 1;
-    const rModule = systemResult.config.BATTERY_R_MODULE_MOHM;
+    const _vBat = (systemResult.battery && systemResult.battery.voltage) ? systemResult.battery.voltage : 48;
+    const rModule = (_vBat >= 200)
+      ? (systemResult.config.BATTERY_R_TOWER_MOHM || 50)
+      : (systemResult.config.BATTERY_R_MODULE_MOHM || 8);
     const rParallel = rModule / Math.max(1, nUnits);
     const vBat = systemResult.battery.voltage || 48;
     const iscKA = (vBat / (rParallel / 1000)) / 1000;

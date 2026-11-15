@@ -46,6 +46,14 @@ function initUI(deps) {
     });
   }
 
+  const peakSel = document.getElementById('sc3-peakFactor');
+  if (peakSel) {
+    peakSel.addEventListener('change', function() {
+      const cf = document.getElementById('sc3-customPeak-field');
+      if (cf) cf.style.display = this.value === 'custom' ? '' : 'none';
+    });
+  }
+
 const methodSelect = document.getElementById("sc3-method"); 
   if (methodSelect) { 
     methodSelect.addEventListener("change", function() { 
@@ -176,7 +184,14 @@ function readInputs() {
     inputs.clampHours = v('sc3-clampHours') || 10;
   } else if (method === 'daily') {
     inputs.dailyKWh = v('sc3-dailyKWh') || 0;
-    inputs.peakFactor = v('sc3-peakFactor') || 3.5;
+    const peakSel = s('sc3-peakFactor');
+    let peakFactor = 3.5;
+    if (peakSel === 'custom') {
+      peakFactor = v('sc3-customPeak') || 3.5;
+    } else if (peakSel) {
+      peakFactor = parseFloat(peakSel) || 3.5;
+    }
+    inputs.peakFactor = peakFactor;
   } else if (method === 'table') {
     inputs.devices = [];
     const rows = document.querySelectorAll('.sc3-device-row');
@@ -203,6 +218,8 @@ function saveInputs() {
       'sc3-lPv', 'sc3-lBat', 'sc3-lAc',
       'sc3-clampAmps', 'sc3-clampAvgPct', 'sc3-clampHours',
       'sc3-dailyKWh', 'sc3-peakFactor',
+      'sc3-nightPct', 'sc3-customNight', 'sc3-reservePct', 'sc3-customReserve',
+      'sc3-etaCharge', 'sc3-etaDischarge', 'sc3-priority',
       'sc3-batteryUnitAh', 'sc3-customBatteryAh'
     ];
     const data = {};
@@ -289,7 +306,40 @@ function buildHTML() {
     /* Daily */
     + '<div id="sc3-block-daily" class="sc-fields" style="display:none">'
     + '<div class="sc-field"><label>الاستهلاك اليومي (kWh)</label><input id="sc3-dailyKWh" type="number" value="15"></div>'
-    + '<div class="sc-field"><label>معامل الذروة</label><input id="sc3-peakFactor" type="number" value="3.5"></div>'
+    + '<div class="sc-field"><label>معامل الذروة (Peak Factor)</label><select id="sc3-peakFactor">'
+    + '<option value="2.0">2.0 — سكني بسيط</option>'
+    + '<option value="2.5">2.5 — سكني + ثلاجة</option>'
+    + '<option value="3.0">3.0 — سكني متوسط</option>'
+    + '<option value="3.5" selected>3.5 — سكني + ثلاجة (افتراضي)</option>'
+    + '<option value="4.0">4.0 — سكني + مكيف صغير</option>'
+    + '<option value="5.0">5.0 — سكني + مكيفات متعددة</option>'
+    + '<option value="custom">مخصص...</option>'
+    + '</select></div>'
+    + '<div class="sc-field" id="sc3-customPeak-field" style="display:none"><label>معامل ذروة مخصص</label><input id="sc3-customPeak" type="number" value="3.5" step="0.1" min="1" max="20"></div>'
+    + '<div class="sc-field"><label>نسبة الاستهلاك الليلي (%)</label><select id="sc3-nightPct">'
+    + '<option value="20">20% — تجاري</option>'
+    + '<option value="30">30% — صناعي</option>'
+    + '<option value="40">40% — مختلط</option>'
+    + '<option value="50">50% — سكني خفيف</option>'
+    + '<option value="60" selected>60% — سكني (افتراضي)</option>'
+    + '<option value="70">70% — سكني كثيف</option>'
+    + '<option value="custom">مخصص...</option>'
+    + '</select></div>'
+    + '<div class="sc-field" id="sc3-customNight-field" style="display:none"><label>نسبة ليلية مخصصة (%)</label><input id="sc3-customNight" type="number" value="60" min="0" max="100" step="5"></div>'
+    + '<div class="sc-field"><label>احتياطي البطارية (%) — هدف تخطيطي</label><select id="sc3-reservePct">'
+    + '<option value="0">0% — لا احتياطي</option>'
+    + '<option value="10">10%</option>'
+    + '<option value="20" selected>20% (افتراضي)</option>'
+    + '<option value="30">30% (مناطق جبلية)</option>'
+    + '<option value="custom">مخصص...</option>'
+    + '</select></div>'
+    + '<div class="sc-field" id="sc3-customReserve-field" style="display:none"><label>احتياطي مخصص (%)</label><input id="sc3-customReserve" type="number" value="20" min="0" max="80" step="5"></div>'
+    + '<div class="sc-field"><label>كفاءة شحن البطارية (%)</label><input id="sc3-etaCharge" type="number" value="100" min="70" max="100" step="1"></div>'
+    + '<div class="sc-field"><label>كفاءة تفريغ البطارية (%)</label><input id="sc3-etaDischarge" type="number" value="100" min="70" max="100" step="1"></div>'
+    + '<div class="sc-field"><label>أولوية البطارية</label><select id="sc3-priority">'
+    + '<option value="load" selected>الأحمال أولاً (افتراضي)</option>'
+    + '<option value="battery">البطارية أولاً (للشبكة/الطوارئ)</option>'
+    + '</select></div>'
     + '</div>'
     + '</fieldset>'
 
